@@ -1,10 +1,8 @@
 package adserve.core;
 
 import ads.v1.AdRequest;
-import ads.v1.Priority;
 import ads.v1.Region;
 import ads.v1.Token;
-import adserve.core.caps.InMemoryCapStore;
 import adserve.core.engine.BudgetLedger;
 import adserve.core.engine.CampaignSnapshot;
 import adserve.core.engine.DecisionEngine;
@@ -94,7 +92,16 @@ public class HotPathBenchmark {
                 .setCreativeId("2abc9eaf57d17a96195af3f63c45dc72").setServingRegion(Region.US_EAST)
                 .setIssuedTsMs(1_370_950_000_000L).setViewerId("trqRTuSoXQuIXQc_5SqfNX").setPriceMicros(812).build();
         BudgetLedger ledger = new BudgetLedger();
-        engine = new DecisionEngine(EngineConfig.defaults(), SnapshotSource.fixed(snap), new InMemoryCapStore(true), ledger,
+        // Counters that answer zero and drop writes: the benchmark measures the path's CPU, not a
+        // map that would otherwise grow by one viewer per iteration.
+        adserve.core.caps.CapStore zeroCaps = new adserve.core.caps.CapStore() {
+            public adserve.core.caps.CapCounts fetch(String v, List<String> ids, long now) {
+                return new adserve.core.caps.CapCounts(new long[ids.size()], new long[ids.size()], 0, true);
+            }
+
+            public void recordImpression(String v, String c, String e, long ts) {}
+        };
+        engine = new DecisionEngine(EngineConfig.defaults(), SnapshotSource.fixed(snap), zeroCaps, ledger,
                 PacingController.standard(60_000, c -> PacingPlan.flat(1440), ledger), new DpSolver(), tokens,
                 DecisionLog.NONE, bs, v -> List.of(), () -> 0.0, StageTimer.NONE);
     }
@@ -136,11 +143,10 @@ public class HotPathBenchmark {
         return tokens.encode(token);
     }
 
-    /** One whole decision with in-memory counters and no log: the CPU cost of the path. */
+    /** One whole decision (counters answering zero, no log): the CPU cost of the path, tokens included. */
     @Benchmark
     public void fullDecision(Blackhole bh) {
         AdRequest r = requests.get(next());
-        bh.consume(engine.decide(r.toBuilder().setViewerId(r.getViewerId() + "-" + System.nanoTime())
-                .setPriority(Priority.LIVE).build()));
+        bh.consume(engine.decide(r));
     }
 }

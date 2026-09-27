@@ -19,3 +19,7 @@ given; the numbers in NUMBERS.md never come from this folder.
   compared, which was a bug in the audit; it now reports null and exits non-zero on an empty
   table. The player-side figures in these rows (impressions served, beacons and duplicates
   sent) are valid but are superseded by the rerun.
+- `jmh-hotpath_run1_growing_counter_map.json`: the first JMH run. Every benchmark except
+  `fullDecision` is valid and identical in method to the rerun. `fullDecision` (69.6 us +/- 65.9)
+  gave every iteration a new viewer id against an in-memory counter map, so the map grew by
+  millions of keys during the run and the figure measured the map, not the decision path.
