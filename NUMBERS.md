@@ -156,3 +156,25 @@ capacity with caps enforced.
 | Exact branch and bound, same breaks | 7.0 us |
 | Greedy | 1.7 us |
 | Sign one impression token (HMAC-SHA256) | 280 ns |
+
+## Experiment 10: the counter deadline, and where the server sits
+
+`results/exp10_deadline.jsonl`. The 8,000-request burst, G1, three repeats per cell, with the cap
+check's deadline at 20, 50 and 100 ms, first with the server on the host (Redis through Docker
+Desktop's port forwarder) and then with the server in a container on the Redis network. Load
+average before the runs ranged from 5 to 38: the laptop was doing more than this experiment, and
+tail latency varied 5 to 20 times between repeats of the same cell. Read the ranges, not a cell.
+
+| Server placement, deadline | p99 per repeat | Decisions that missed the deadline (of 8,000) |
+|---|---|---|
+| Host, 20 ms | 58.7, 5.6, 50.1 ms | 370, 0, 2,015 |
+| Host, 50 ms | 74.5, 11.0, 186.4 ms | 876, 0, 5,532 |
+| Host, 100 ms | 31.8, 400.1, 18.4 ms | 0, 5,764, 0 |
+| Container, 20 ms | 32.9, 47.1, 19.3 ms | 5, 125, 9 |
+| Container, 50 ms | 59.8, 8.4, 50.8 ms | 2,947, 0, 0 |
+| **Container, 100 ms** | **87.3, 15.5, 33.1 ms** | **0, 0, 0** |
+
+What this supports: the Redis path through the Mac's port forwarder, not the decision code, is
+what makes checks miss under a burst (next to Redis, misses at 20 ms fell from hundreds or
+thousands to single digits in two of three repeats), and a longer deadline trades tail latency
+for enforcement. What it does not support: any single p99 from this table as a capacity figure.
