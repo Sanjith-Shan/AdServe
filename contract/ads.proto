@@ -1,0 +1,135 @@
+// AdServe's API contract. Written 2026-09-26 (originally shared with a pipeline project that was
+// retired the same night; Beacon and EnrichedAdEvent stay for AdServe's beacon consumer and its
+// optional billing job). Copy to contract/ads.proto in the AdServe repo. Field numbers are never
+// reused.
+//
+// Event names follow IAB VAST 4.x tracking events so a reader recognises them.
+
+syntax = "proto3";
+
+package ads.v1;
+
+option java_package = "ads.v1";
+option java_multiple_files = true;
+
+enum Region {
+  REGION_UNSPECIFIED = 0;
+  US_EAST = 1;
+  US_WEST = 2;
+}
+
+// Request classes for load shedding. LIVE is served before VOD when the server is saturated.
+enum Priority {
+  PRIORITY_UNSPECIFIED = 0;
+  VOD = 1;
+  LIVE = 2;
+}
+
+enum EventType {
+  EVENT_TYPE_UNSPECIFIED = 0;
+  IMPRESSION = 1;       // the ad started rendering; the revenue-bearing event
+  START = 2;
+  FIRST_QUARTILE = 3;
+  MIDPOINT = 4;
+  THIRD_QUARTILE = 5;
+  COMPLETE = 6;
+  CLICK = 7;
+  PAUSE = 8;
+  SKIP = 9;
+  ERROR = 10;
+}
+
+// One ad break, asked for by the player.
+message AdRequest {
+  string request_id = 1;        // client-generated, unique per break
+  string viewer_id = 2;
+  string title_id = 3;
+  string genre = 4;             // used by brand-safety exclusions
+  uint32 break_length_s = 5;    // e.g. 90
+  string device = 6;            // tv, mobile, web
+  Region region = 7;            // where the request arrived
+  Priority priority = 8;
+  int64 ts_ms = 9;              // client clock, epoch ms
+  repeated string segments = 10; // audience segments already resolved for the viewer
+}
+
+message Creative {
+  string creative_id = 1;
+  string campaign_id = 2;
+  string advertiser_id = 3;
+  string category = 4;          // competitive-separation key, e.g. "auto"
+  uint32 duration_s = 5;        // 15, 30 or 60
+}
+
+// The opaque token the device carries and fires back on every beacon. AdServe serialises this
+// message, appends an HMAC, and base64-encodes the pair into Impression.token. The beacon consumer
+// decodes it, verifies the HMAC with the shared key (env ADS_TOKEN_KEY), and reads
+// serving_region to route the beacon.
+message Token {
+  string impression_id = 1;
+  string campaign_id = 2;
+  string creative_id = 3;
+  Region serving_region = 4;
+  int64 issued_ts_ms = 5;
+}
+
+message Impression {
+  string impression_id = 1;     // unique per served creative slot
+  string token = 2;             // base64(Token bytes || HMAC-SHA256)
+  Creative creative = 3;
+  uint32 slot = 4;              // position in the pod, 0-based
+  int64 price_micros = 5;       // what this impression is worth, in micro-dollars
+  repeated EventType tracking = 6; // which events the device must fire
+}
+
+// The decision. Returned to the player and published, fire-and-forget, to Kafka topic
+// ad.responses keyed by request_id. the beacon consumer flat-maps it into one record per impression,
+// keyed by impression_id.
+message AdResponse {
+  string request_id = 1;
+  string viewer_id = 2;
+  Region serving_region = 3;
+  int64 decided_ts_ms = 4;
+  repeated Impression pod = 5;
+  uint32 decision_latency_us = 6;
+  uint32 candidates_considered = 7;
+  string pacer = 8;             // which pacing algorithm gated this decision
+}
+
+// What the device fires. Published to Kafka topic ad.beacons.<region> keyed by the token
+// string. beacon_id is client-generated and repeats on a retry, which is what makes dedup
+// possible. It is not globally unique across devices; the beacon consumer's stable event id is a hash of
+// (impression_id, type, offset_s).
+message Beacon {
+  string token = 1;
+  EventType type = 2;
+  int64 client_ts_ms = 3;
+  string device = 4;
+  Region arrival_region = 5;
+  uint32 offset_s = 6;          // playback offset within the creative when fired
+  string beacon_id = 7;
+  string schema = 8;            // "vod", "live" or "pause": which input shape this came in as
+}
+
+// The billing job's output. Published to ad.events.enriched and written to the Iceberg table
+// ads.enriched_events. event_id travels with it so billing can dedup again over a longer window.
+message EnrichedAdEvent {
+  string event_id = 1;          // sha256(impression_id | type | offset_s), hex
+  string impression_id = 2;
+  EventType type = 3;
+  Creative creative = 4;
+  string viewer_id = 5;
+  int64 price_micros = 6;
+  int64 client_ts_ms = 7;
+  int64 decided_ts_ms = 8;
+  int64 enriched_ts_ms = 9;
+  Region serving_region = 10;
+  Region arrival_region = 11;
+  bool rerouted = 12;           // arrived in the wrong region and was forwarded
+  bool recovered = 13;          // matched by the hourly recovery job, not in-stream
+  string pipeline = 14;         // "flink" or "legacy", for the audit
+}
+
+service AdDecision {
+  rpc Decide(AdRequest) returns (AdResponse);
+}
