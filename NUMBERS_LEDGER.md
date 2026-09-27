@@ -38,6 +38,23 @@ File `results/exp1_burst.jsonl`. Machine: Apple M3 Pro, 12 cores, 18 GB, low pow
 | legacy_sync_write | 16,000 | 15,335 | 2 | 12,259 | 0.2338 | 2009.09 | 2079.74 | 2119.68 | 1.48 | 13.94 |
 | legacy_sync_write | 16,000 | 15,335 | 3 | 12,753 | 0.2029 | 1984.51 | 2111.49 | 2152.45 | 1.48 | 12.84 |
 
+## Experiment 2: pacing over one real day
+
+File `results/exp2_pacing.jsonl` (per campaign: `exp2_pacing_campaigns.jsonl`). Machine: Apple M3 Pro, 12 cores, 18 GB, low power mode 1. The full replay day (1,745,722 ad breaks) through the real decision engine on a simulated fleet of 8 nodes that sync spend every 10 simulated seconds; 55 campaigns, budgets are each creative's real spend that day; pacers plan on the previous day's traffic and are scored against the replay day's own eligible traffic. Deterministic: one run per configuration.
+
+| Pacer | Per-node allowance | Delivered (all budgets) | Mean abs landing error | Within 5% of budget | Overspent campaigns | Aggregate overspend | Max overspend | Exhausted before 23:00 | Mean exhaustion hour | Mean RMSE vs plan |
+|---|---|---|---|---|---|---|---|---|---|---|
+| unpaced | yes | 1.000 | 0.002 | 55 of 55 | 0 | 0.00% | 0.0% | 50 | 7.9 | 0.420 |
+| throttle | yes | 1.000 | 0.002 | 55 of 55 | 0 | 0.00% | 0.0% | 36 | 19.4 | 0.180 |
+| smart | yes | 0.999 | 0.006 | 54 of 55 | 0 | 0.00% | 0.0% | 0 | - | 0.089 |
+| pid | yes | 0.848 | 0.147 | 24 of 55 | 0 | 0.00% | 0.0% | 10 | 20.0 | 0.177 |
+| oracle | yes | 1.000 | 0.003 | 55 of 55 | 0 | 0.00% | 0.0% | 46 | 22.3 | 0.149 |
+| unpaced | no | 1.031 | 0.643 | 44 of 55 | 55 | 3.13% | 699.1% | 55 | 7.2 | 1.046 |
+| throttle | no | 1.004 | 0.014 | 50 of 55 | 50 | 0.44% | 19.7% | 46 | 17.3 | 0.189 |
+| smart | no | 1.024 | 0.068 | 32 of 55 | 40 | 3.09% | 48.8% | 6 | 17.9 | 0.091 |
+| pid | no | 0.843 | 0.200 | 15 of 55 | 17 | 1.63% | 72.4% | 6 | 14.7 | 0.190 |
+| oracle | no | 1.001 | 0.001 | 55 of 55 | 41 | 0.10% | 0.6% | 53 | 21.4 | 0.149 |
+
 ## Experiment 3: frequency caps under duplicated, late and lost beacons
 
 File `results/exp3_caps.jsonl`. Machine: Apple M3 Pro, 12 cores, 18 GB, low power mode 1; Redis 7.4 in Docker on the same machine. simulated sessions: 2000 iPinYou viewers (real geo, device, segments) x 12 breaks, 12 to 20 min apart. Beacons lost 1%, late (5 to 60 min) 3%, otherwise 0.5 to 30 s. One run per cell.

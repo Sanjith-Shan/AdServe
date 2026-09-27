@@ -139,8 +139,12 @@ one-minute slot, plus two baselines:
   per-creative click rates from the logs.
 - **PID**, ported from AdRankBench (kp 0.5, ki 0.05, kd 0.1) on the gap between planned and
   actual cumulative spend.
-- **Unpaced** baseline, and an **oracle** that runs the Smart controller with the replay day's
-  own traffic instead of a forecast, which isolates what forecast error costs.
+- **Unpaced** baseline, and a **perfect-forecast** baseline (`oracle` in the results) that runs
+  the Smart controller with the replay day's own eligible traffic instead of the previous day's.
+  It was meant to bound what forecast error costs. It did not beat the real forecast: it ran
+  slightly ahead of plan and exhausted budgets about 1.7 hours early, so on this day the
+  controller's spend estimate, not the forecast, was the limiting factor. The first oracle
+  (foreknowledge of full-rate spend from an unpaced pass) was worse still and is archived.
 
 Every pacer starts from a forecast warm start (BUG_LOG bug 5). The forecast is the previous
 day's eligible traffic per campaign per minute (`sim forecast`), smoothed over 15 minutes.
