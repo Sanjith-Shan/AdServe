@@ -147,11 +147,27 @@ File `results/exp6_dependency.jsonl`. Machine: Apple M3 Pro, 12 cores, 18 GB, lo
 | redis_plus_50ms | 8,000 | 7,668 | 1 | 8,000 | 0.0000 | 21.68 | 92.54 | 105.22 | 1.72 | 6.30 |
 | redis_plus_50ms | 8,000 | 7,668 | 2 | 8,000 | 0.0000 | 20.50 | 24.48 | 26.72 | 1.73 | 6.03 |
 | redis_plus_50ms | 8,000 | 7,668 | 3 | 8,000 | 0.0000 | 20.64 | 25.73 | 33.63 | 1.72 | 5.70 |
+| redis_down_deny | 8,000 | 7,668 | 1 | 8,000 | 0.0000 | 0.20 | 1.67 | 3.06 | 0.52 | 4.26 |
+| redis_down_deny | 8,000 | 7,668 | 2 | 8,000 | 0.0000 | 0.14 | 2.98 | 12.82 | 0.54 | 4.08 |
+| redis_down_deny | 8,000 | 7,668 | 3 | 8,000 | 0.0000 | 0.18 | 9.46 | 12.21 | 0.52 | 4.24 |
+| redis_down_allow_cold | 8,000 | 7,668 | 1 | 8,000 | 0.0000 | 0.14 | 5.70 | 9.70 | 1.72 | 4.99 |
+| redis_down_allow_cold | 8,000 | 7,668 | 2 | 8,000 | 0.0000 | 0.14 | 20.13 | 29.26 | 1.71 | 4.75 |
+| redis_down_allow_cold | 8,000 | 7,668 | 3 | 8,000 | 0.0000 | 0.14 | 3.04 | 38.72 | 1.71 | 4.62 |
+| legacy_all_up | 8,000 | 7,668 | 1 | 8,000 | 0.0000 | 661.50 | 1283.07 | 1520.64 | 1.71 | 7.18 |
+| legacy_all_up | 8,000 | 7,668 | 2 | 8,000 | 0.0000 | 534.53 | 1119.23 | 1391.62 | 1.72 | 7.53 |
+| legacy_all_up | 8,000 | 7,668 | 3 | 8,000 | 0.0000 | 802.30 | 1454.08 | 1546.24 | 1.70 | 7.17 |
+| legacy_postgres_down | 8,000 | 7,668 | 1 | 0 | 1.0000 | 2000.89 | 2018.30 | 2038.78 | 0.00 | 9.29 |
+| legacy_postgres_down | 8,000 | 7,668 | 2 | 0 | 1.0000 | 2001.92 | 2021.38 | 2024.45 | 0.00 | 8.62 |
+| legacy_postgres_down | 8,000 | 7,668 | 3 | 0 | 1.0000 | 2000.89 | 2022.40 | 2030.59 | 0.00 | 8.75 |
 
 - `all_up`: every dependency up
 - `kafka_down`: Kafka stopped; the decision log buffer fills and drops, serving continues
+- `legacy_all_up`: legacy sync-write, every dependency up
+- `legacy_postgres_down`: legacy sync-write with Postgres stopped
 - `postgres_down`: Postgres stopped after the snapshot loaded; decisions come from the in-process snapshot
 - `redis_down_allow`: Redis stopped, cap mode unknown_allow: serve, caps unknown
+- `redis_down_allow_cold`: Redis stopped before the server started, cap mode unknown_allow
+- `redis_down_deny`: Redis stopped before the server started, cap mode unknown_deny: capped campaigns dropped
 - `redis_plus_0ms`: Redis behind Toxiproxy with 0 ms added per response; cap check deadline 20 ms, cap mode unknown_allow
 - `redis_plus_50ms`: Redis behind Toxiproxy with 50 ms added per response; cap check deadline 20 ms, cap mode unknown_allow
 - `redis_plus_5ms`: Redis behind Toxiproxy with 5 ms added per response; cap check deadline 20 ms, cap mode unknown_allow
