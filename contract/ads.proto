@@ -1,7 +1,7 @@
 // AdServe's API contract. Written 2026-09-26 (originally shared with a pipeline project that was
 // retired the same night; Beacon and EnrichedAdEvent stay for AdServe's beacon consumer and its
-// optional billing job). Copy to contract/ads.proto in the AdServe repo. Field numbers are never
-// reused.
+// billing job). Field numbers are never reused. Changes after the first commit are additive only
+// and each one is marked "added" with the milestone that needed it.
 //
 // Event names follow IAB VAST 4.x tracking events so a reader recognises them.
 
@@ -51,6 +51,7 @@ message AdRequest {
   Priority priority = 8;
   int64 ts_ms = 9;              // client clock, epoch ms
   repeated string segments = 10; // audience segments already resolved for the viewer
+  string geo = 11;              // added M1: viewer geography for targeting, e.g. "r216" (iPinYou region code)
 }
 
 message Creative {
@@ -71,6 +72,8 @@ message Token {
   string creative_id = 3;
   Region serving_region = 4;
   int64 issued_ts_ms = 5;
+  string viewer_id = 6;         // added M4: the beacon consumer counts frequency per viewer
+  int64 price_micros = 7;       // added M4: the beacon consumer counts confirmed spend
 }
 
 message Impression {
@@ -82,9 +85,9 @@ message Impression {
   repeated EventType tracking = 6; // which events the device must fire
 }
 
-// The decision. Returned to the player and published, fire-and-forget, to Kafka topic
-// ad.responses keyed by request_id. the beacon consumer flat-maps it into one record per impression,
-// keyed by impression_id.
+// The decision. Returned to the player. Published, fire-and-forget, to Kafka topic ad.responses
+// keyed by request_id, wrapped in a DecisionRecord that adds the request and the scored
+// candidates. The billing job flat-maps it into one record per impression, keyed by impression_id.
 message AdResponse {
   string request_id = 1;
   string viewer_id = 2;
@@ -94,6 +97,28 @@ message AdResponse {
   uint32 decision_latency_us = 6;
   uint32 candidates_considered = 7;
   string pacer = 8;             // which pacing algorithm gated this decision
+}
+
+// Added M1. One scored candidate as the decision saw it, logged for audit and replay.
+message ScoredCandidate {
+  string campaign_id = 1;
+  string creative_id = 2;
+  string advertiser_id = 3;
+  string category = 4;
+  uint32 duration_s = 5;
+  int64 value_micros = 6;       // eCPM-derived value of one impression of this creative
+  string dropped_by = 7;        // empty if it reached pod assembly, else the stage that removed it
+}
+
+// Added M1. What ad.responses carries: the decision the player got, plus everything needed to
+// explain and replay it.
+message DecisionRecord {
+  AdResponse response = 1;
+  AdRequest request = 2;
+  repeated ScoredCandidate candidates = 3;
+  string cap_mode = 4;          // "ok", "unknown_allow" or "unknown_deny" (counter store unreachable)
+  string solver = 5;            // pod assembly algorithm used
+  int64 pod_value_micros = 6;
 }
 
 // What the device fires. Published to Kafka topic ad.beacons.<region> keyed by the token
