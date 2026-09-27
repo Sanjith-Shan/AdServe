@@ -87,3 +87,72 @@ and the real Lua scripts; beacons duplicated at 5, 10 and 20%, lost 1%, late 3%.
 **1,177,292 bytes** and a delta after one campaign's budget changes is about **1,075 bytes**;
 a watching serving node had rebuilt its snapshot **1.0 s** after publish (p50 of 20 changes;
 the file-based announcement watcher polls once a second).
+
+## Experiment 5: priority shedding
+
+`results/exp5_shedding.jsonl`. Sustained open-loop load for 15 s, 40% LIVE, two repeats, with
+the shedder configured for a capacity of 4,000 decisions/s. That figure was set conservatively:
+the Docker Desktop VM on this laptop had hung under another project's overload runs that night,
+and the unshed server in fact sustained 8,000/s without errors. So this shows the priority
+mechanism, not a server at its true limit.
+
+- **At 2x the configured capacity (8,000/s): with shedding, every one of 40,000 LIVE requests
+  was served with p99 7.8 and 17.0 ms, while 74% of VOD requests were refused with
+  RESOURCE_EXHAUSTED and a retry hint. Without shedding, LIVE p99 was 40.9 and 60.2 ms.**
+- At 1.5x, 49% of VOD was refused and LIVE p99 was 24.5 and 70.0 ms (with shedding) against
+  15.1 and 20.5 ms (without): below the real limit, shedding bought nothing but refusals. At 1x,
+  nothing was shed.
+
+## Experiment 6: dependencies stopped
+
+`results/exp6_dependency.jsonl`. The same 8,000-request burst, three repeats per leg (24,000
+requests each).
+
+| Condition | Served | p99 per repeat | Ads per pod |
+|---|---|---|---|
+| Everything up | 24,000 of 24,000 | 28.0, 119.3, 14.5 ms | 1.71 |
+| **Postgres stopped** | **24,000 of 24,000** | 55.0, 22.7, 35.3 ms | 1.70 |
+| Kafka stopped | 24,000 of 24,000 | 23.1, 230.7, 28.7 ms | 1.71 |
+| Redis stopped, unknown_allow | 24,000 of 24,000 | 5.9, 74.6, 16.2 ms | 1.71 |
+| Redis stopped, unknown_deny (server started while Redis was down) | 24,000 of 24,000 | 1.7, 3.0, 9.5 ms | 0.53 |
+| Redis 50 ms slow (Toxiproxy), 20 ms deadline | 24,000 of 24,000 | 92.5, 24.5, 25.7 ms | 1.72 |
+| Sync-write baseline, everything up | 24,000 of 24,000 | 1,283, 1,119, 1,454 ms | 1.71 |
+| **Sync-write baseline, Postgres stopped** | **0 of 24,000** | every request failed after 2 s | 0 |
+
+- With Kafka down the decision log's buffer absorbed every record (0 dropped in 24,000; the
+  buffer holds 200,000), so a longer outage than this would start dropping.
+- `unknown_deny` keeps capped campaigns out while caps cannot be read, and pods shrank from 1.71
+  to 0.53 ads: that is the revenue the viewer-first choice costs.
+- These legs ran generational ZGC and are noisy between repeats (see experiment 9). **During
+  bursts the 20 ms counter deadline was missed for 0 to 57% of decisions even with Redis up**
+  (BUG_LOG bug 11), and those decisions served in the unknown_allow mode. The per-run count is in
+  the ledger (`server_cap_unknown`).
+
+## Experiment 9: collector and thread model
+
+`results/exp9_runtime.jsonl`. The 8,000 and 12,000-request bursts, three repeats each.
+
+| Server runtime | 8,000 in 2 s, p99 | Counter deadline missed | 12,000 in 2 s, p99 | Missed |
+|---|---|---|---|---|
+| G1, a virtual thread per request | **7.3, 10.2, 7.3 ms** | **0, 0, 0** | 42.7, 44.5, 21.0 ms | 10,800, 4,258, 3,698 |
+| Generational ZGC, virtual threads | 26.2, 54.6, 21.5 ms | 51, 1,572, 342 | 135.4, 61.8, 63.2 ms | 10,395, 7,390, 5,230 |
+| Generational ZGC, 64 platform threads | 89.2, 49.0, 22.1 ms | 60, 16, 0 | 38.3, 7.7, 193.3 ms | 0, 0, 46 |
+
+**G1 with virtual threads served every 8,000-request break with p99 at most 10.2 ms and every
+frequency check answered.** The server has used G1 since. Platform threads bound how many counter
+fetches are in flight, so they miss the deadline less but queue in the pool, and their p99 swings
+widely. At 12,000 every configuration skipped thousands of checks: that is past this laptop's
+capacity with caps enforced.
+
+## JMH: the decision path's CPU cost
+
+`results/jmh-hotpath.json`, average time per call, one fork, 5 measured iterations.
+
+| What | Time |
+|---|---|
+| One whole decision (55 campaigns, DP pod, tokens, decision record; counters stubbed) | **16.5 us** |
+| All 55 compiled targeting predicates against one request | 182 ns |
+| DP pod solve (real break, 43 candidates on average) | 7.3 us |
+| Exact branch and bound, same breaks | 7.0 us |
+| Greedy | 1.7 us |
+| Sign one impression token (HMAC-SHA256) | 280 ns |
