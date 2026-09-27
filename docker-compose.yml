@@ -80,3 +80,11 @@ services:
       - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./deploy/grafana/dashboards:/var/lib/grafana/dashboards:ro
     mem_limit: 384m
+
+  # Only for the latency-injection experiment: Redis reached through a proxy that can add delay.
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.9.0
+    profiles: ["chaos"]
+    restart: unless-stopped
+    ports: ["28474:8474", "26380:26380"]
+    mem_limit: 64m

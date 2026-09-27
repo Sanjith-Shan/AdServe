@@ -50,6 +50,8 @@ public final class BurstExperiment {
                     long liveEvery = liveShare <= 0 ? Long.MAX_VALUE : Math.round(1 / liveShare);
                     LoadGen.Tally live = new LoadGen.Tally(), vod = new LoadGen.Tally();
                     String load = Machine.loadAvg();
+                    double capUnknown0 = ServerMetrics.value("adserve_cap_unknown_total");
+                    double dropped0 = ServerMetrics.value("adserve_decision_log_dropped_total");
                     gen.run(n, Schedules.liveBreak(n, 2.0, 0.4), i -> {
                         Priority p = liveShare >= 1 || (liveShare > 0 && i % liveEvery == 0) ? Priority.LIVE : Priority.VOD;
                         return stamp(base.get(i % base.size()), run, i, p, BREAK_TS + (i % 2000));
@@ -68,6 +70,9 @@ public final class BurstExperiment {
                     out.put("warmup", warmSeconds + " s at " + (int) warmRate + "/s before the first burst");
                     out.put("traffic", "real ad-break contexts from iPinYou 2013-06-11, fresh simulated viewers per burst");
                     out.put("load_generator", "same machine, separate JVM, open loop, 8 gRPC channels");
+                    Thread.sleep(1500);
+                    out.put("server_cap_unknown", ServerMetrics.value("adserve_cap_unknown_total") - capUnknown0);
+                    out.put("server_decision_log_dropped", ServerMetrics.value("adserve_decision_log_dropped_total") - dropped0);
                     LoadGen.summarize(out, "live", live, 2.0);
                     LoadGen.summarize(out, "vod", vod, 2.0);
                     Results.append(resultsFile, out);

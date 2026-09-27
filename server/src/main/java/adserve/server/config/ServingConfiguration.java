@@ -98,7 +98,8 @@ public class ServingConfiguration {
     @Bean
     public DecisionEngine decisionEngine(AdServeProperties p, adserve.core.engine.SnapshotSource servingSnapshots, RedisCounters counters,
                                          BudgetLedger ledger, PacingController pacing, KafkaDecisionLog log,
-                                         DecisionMetrics metrics, ConcurrentHashMap<String, List<String>> viewerSegments) {
+                                         DecisionMetrics metrics, ConcurrentHashMap<String, List<String>> viewerSegments,
+                                         MeterRegistry registry) {
         EngineConfig cfg = EngineConfig.defaults()
                 .withCapMode(p.capMode())
                 .withServingRegion(p.servingRegion())
@@ -106,8 +107,13 @@ public class ServingConfiguration {
                 .withSeparation(Separation.ADJACENT);
         Function<String, List<String>> lookup = v -> viewerSegments.getOrDefault(v, List.of());
         DecisionLog sink = log;
-        return new DecisionEngine(cfg, servingSnapshots, counters, ledger, pacing, solver(p.solver()), TokenCodec.fromEnv(),
+        DecisionEngine engine = new DecisionEngine(cfg, servingSnapshots, counters, ledger, pacing, solver(p.solver()), TokenCodec.fromEnv(),
                 sink, BrandSafety.defaults(), lookup, null, metrics);
+        io.micrometer.core.instrument.FunctionCounter.builder("adserve.cap.unknown", engine, DecisionEngine::capUnknown)
+                .description("decisions whose counter fetch missed its deadline or failed").register(registry);
+        io.micrometer.core.instrument.FunctionCounter.builder("adserve.pods.invalid", engine, DecisionEngine::invalidPods)
+                .register(registry);
+        return engine;
     }
 
     @Bean
