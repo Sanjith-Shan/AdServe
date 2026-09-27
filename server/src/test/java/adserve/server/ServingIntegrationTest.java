@@ -155,4 +155,57 @@ class ServingIntegrationTest {
                 "{ campaign(id: \"gql-1\") { delivery { spendMicros } } }", "data.campaign.delivery.spendMicros");
         assertThat(spend.longValue()).isPositive();
     }
+
+    @Test
+    void aViewerCappedByConfirmedBeaconsIsNotServedTheAd() throws Exception {
+        Campaign capped = new Campaign("cap-c", "cap-adv", "capped", "software", 90_000_000, 5_000_000_000L,
+                T0 - 86_400_000L, T0 + 86_400_000L, PacerKind.UNPACED, new FrequencyCap(2, 0),
+                new TargetingSpec(Set.of("r-cap"), Set.of(), Set.of(), Set.of()),
+                List.of(new CreativeSpec("cap-c-30", 30, 0.02)), true);
+        repo.upsert(capped, "Capped Advertiser");
+        cache.refreshNow();
+
+        // Two impressions of cap-c served to this viewer somewhere else; only their beacons arrive here.
+        TokenCodec codec = TokenCodec.fromEnv();
+        Properties pp = new Properties();
+        pp.put("bootstrap.servers", KAFKA.getBootstrapServers());
+        try (var producer = new org.apache.kafka.clients.producer.KafkaProducer<String, byte[]>(pp,
+                new org.apache.kafka.common.serialization.StringSerializer(),
+                new org.apache.kafka.common.serialization.ByteArraySerializer())) {
+            for (int k = 0; k < 2; k++) {
+                String tok = codec.encode(ads.v1.Token.newBuilder().setImpressionId("elsewhere-" + k).setCampaignId("cap-c")
+                        .setCreativeId("cap-c-30").setServingRegion(Region.US_WEST).setIssuedTsMs(T0 - 1000)
+                        .setViewerId("viewer-cap").setPriceMicros(100).build());
+                ads.v1.Beacon b = ads.v1.Beacon.newBuilder().setToken(tok).setType(ads.v1.EventType.IMPRESSION)
+                        .setArrivalRegion(Region.US_WEST).setBeaconId("b" + k).build();
+                for (int dup = 0; dup < 3; dup++) {
+                    producer.send(new org.apache.kafka.clients.producer.ProducerRecord<>("ad.beacons.us_west", tok, b.toByteArray()));
+                }
+            }
+            producer.flush();
+        }
+        try (adserve.beacons.RedisCounters rc = new adserve.beacons.RedisCounters(
+                "redis://" + REDIS.getHost() + ":" + REDIS.getMappedPort(6379), 2000, true)) {
+            adserve.beacons.BeaconProcessor proc = new adserve.beacons.BeaconProcessor(codec, rc, null);
+            long deadline = System.currentTimeMillis() + 30_000;
+            adserve.beacons.BeaconConsumer.run(KAFKA.getBootstrapServers(), proc, "it-beacons",
+                    () -> proc.impressions.sum() >= 6 || System.currentTimeMillis() > deadline);
+            assertThat(proc.impressions.sum()).isEqualTo(6);
+            assertThat(rc.fetch("viewer-cap", List.of("cap-c"), T0).day()).containsExactly(2);
+        }
+
+        ManagedChannel ch = ManagedChannelBuilder.forAddress("localhost", grpc.port()).usePlaintext().build();
+        try {
+            AdRequest req = AdRequest.newBuilder().setRequestId("cap-req").setViewerId("viewer-cap").setTitleId("t")
+                    .setGenre("drama").setBreakLengthS(60).setDevice("tv").setRegion(Region.US_EAST)
+                    .setPriority(Priority.VOD).setTsMs(T0).setGeo("r-cap").build();
+            AdResponse resp = AdDecisionGrpc.newBlockingStub(ch).decide(req);
+            assertThat(resp.getPodList()).extracting(i -> i.getCreative().getCampaignId()).doesNotContain("cap-c");
+            AdResponse other = AdDecisionGrpc.newBlockingStub(ch).decide(req.toBuilder().setRequestId("cap-req-2")
+                    .setViewerId("viewer-fresh").build());
+            assertThat(other.getPodList()).extracting(i -> i.getCreative().getCampaignId()).contains("cap-c");
+        } finally {
+            ch.shutdownNow();
+        }
+    }
 }
