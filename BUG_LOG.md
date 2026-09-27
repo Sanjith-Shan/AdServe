@@ -109,3 +109,18 @@ last.
 - **Fix:** the dependency is declared; the audit reports null agreement when nothing was
   compared and exits non-zero on an empty billing table, so a dead job fails the experiment
   instead of passing it. The empty run is archived in `results/archive/`.
+
+## 11. Under a burst, many decisions skipped the frequency check
+
+- **Found by:** the `adserve_cap_unknown_total` counter, added for experiment 6 and read by the
+  burst driver before and after every run. With every dependency up, an 8,000-request burst had
+  0 to 4,583 decisions (up to 57%) whose counter fetch missed its 20 ms deadline.
+- **What happened:** during the wall of a live break, Redis round trips through Docker Desktop's
+  port forwarder queue past 20 ms, and the engine does what it was told: serve in the
+  `unknown_allow` cap mode. The latency figures of experiment 1 were partly bought by skipping
+  slow cap checks, and the burst driver did not record how many until this counter existed.
+- **Status:** a measurement and a trade-off rather than a code fix. Experiment 10 sweeps the
+  deadline (20, 50, 100 ms) with the server on the host and in a container on the Redis network,
+  and records the miss rate next to the latency, so every burst figure can be quoted with its
+  enforcement rate. The zero-violation result of experiment 3 is unaffected (no burst, every
+  fetch answered), but a burst figure is never quoted without its miss rate.
