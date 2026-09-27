@@ -99,6 +99,25 @@ File `results/exp4_pods.jsonl`. Machine: Apple M3 Pro, 12 cores, 18 GB, low powe
 | stress | pod | 5,000 | 120.3 | dp | 0.65% | 15.6% | 0.758 | 72 | 225 | 0 |
 | stress | pod | 5,000 | 120.3 | exact | - | - | - | 92 | 1336 | 0 |
 
+## Experiment 5: priority shedding under sustained overload
+
+File `results/exp5_shedding.jsonl`. Machine: Apple M3 Pro, 12 cores, 18 GB, low power mode 1. Sustained open-loop load, 15 s per run, 40% LIVE, capacity set to 4,000/s.
+
+| Server | x capacity | Offered /s | Repeat | LIVE ok | LIVE shed | LIVE p99 ms | VOD ok | VOD shed rate | VOD errors | VOD p99 ms |
+|---|---|---|---|---|---|---|---|---|---|---|
+| shedding | 1.0 | 4,000 | 1 | 20,000 | 0 | 14.13 | 40,000 | 0.000 | 0 | 14.26 |
+| shedding | 1.0 | 4,000 | 2 | 20,000 | 0 | 22.50 | 40,000 | 0.000 | 0 | 22.43 |
+| shedding | 1.5 | 6,000 | 1 | 30,000 | 0 | 70.02 | 30,689 | 0.489 | 0 | 60.29 |
+| shedding | 1.5 | 6,000 | 2 | 30,000 | 0 | 24.50 | 30,685 | 0.489 | 0 | 18.19 |
+| shedding | 2.0 | 8,000 | 1 | 40,000 | 0 | 7.81 | 20,673 | 0.742 | 0 | 6.47 |
+| shedding | 2.0 | 8,000 | 2 | 40,000 | 0 | 17.01 | 20,660 | 0.742 | 0 | 12.67 |
+| no_shedding | 1.0 | 4,000 | 1 | 20,000 | 0 | 13.28 | 40,000 | 0.000 | 0 | 13.01 |
+| no_shedding | 1.0 | 4,000 | 2 | 20,000 | 0 | 10.46 | 40,000 | 0.000 | 0 | 10.40 |
+| no_shedding | 1.5 | 6,000 | 1 | 30,000 | 0 | 15.10 | 60,000 | 0.000 | 0 | 14.76 |
+| no_shedding | 1.5 | 6,000 | 2 | 30,000 | 0 | 20.48 | 60,000 | 0.000 | 0 | 20.48 |
+| no_shedding | 2.0 | 8,000 | 1 | 40,000 | 0 | 60.19 | 80,000 | 0.000 | 0 | 60.06 |
+| no_shedding | 2.0 | 8,000 | 2 | 40,000 | 0 | 40.93 | 80,000 | 0.000 | 0 | 40.83 |
+
 ## Experiment 6: each dependency stopped in turn
 
 The same 8,000-request burst with Postgres, Kafka or Redis stopped, in each cap mode, and the legacy sync-write mode with Postgres stopped.
