@@ -75,10 +75,10 @@ public final class RedisCounters implements CapStore, AutoCloseable {
             """;
 
     private final RedisClient client;
-    private final StatefulRedisConnection<String, String>[] conns;
-    private final RedisAsyncCommands<String, String>[] cmds;
+    private final java.util.concurrent.atomic.AtomicReferenceArray<StatefulRedisConnection<String, String>> conns;
+    private final java.util.concurrent.atomic.AtomicReferenceArray<RedisAsyncCommands<String, String>> cmds;
     private final java.util.concurrent.atomic.AtomicInteger next = new java.util.concurrent.atomic.AtomicInteger();
-    private final RedisAsyncCommands<String, String> cmd;
+    private volatile long nextConnectAttemptMs;
     private final long timeoutMs;
     private final boolean idempotent;
     private final String countSha;
@@ -91,7 +91,6 @@ public final class RedisCounters implements CapStore, AutoCloseable {
     }
 
     /** {@code connections} multiplexed connections, used round-robin by the decision path. */
-    @SuppressWarnings("unchecked")
     public RedisCounters(String uri, long timeoutMs, boolean idempotent, int connections) {
         this.client = RedisClient.create(uri);
         // Fail fast while disconnected instead of queueing commands: a request must not wait on
@@ -102,27 +101,48 @@ public final class RedisCounters implements CapStore, AutoCloseable {
                 .socketOptions(SocketOptions.builder().connectTimeout(Duration.ofMillis(500)).build())
                 .timeoutOptions(TimeoutOptions.enabled(Duration.ofSeconds(2)))
                 .build());
-        this.conns = new StatefulRedisConnection[Math.max(1, connections)];
-        this.cmds = new RedisAsyncCommands[conns.length];
-        for (int i = 0; i < conns.length; i++) {
-            conns[i] = client.connect();
-            cmds[i] = conns[i].async();
-        }
-        this.cmd = cmds[0];
+        this.conns = new java.util.concurrent.atomic.AtomicReferenceArray<>(Math.max(1, connections));
+        this.cmds = new java.util.concurrent.atomic.AtomicReferenceArray<>(conns.length());
         this.timeoutMs = timeoutMs;
         this.idempotent = idempotent;
         this.countSha = sha1(COUNT_ONCE);
         this.spendSha = sha1(SPEND_ONCE);
         this.podSha = sha1(COUNT_POD_ONCE);
-        loadScripts();
+        // Connect now if Redis is up; if it is not, start anyway and connect on first use. A
+        // serving node must be able to start (and serve, in its cap mode) while Redis is down.
+        ensureConnected();
+    }
+
+    /** Opens any missing connection, at most once a second while Redis is unreachable. */
+    private synchronized boolean ensureConnected() {
+        if (cmds.get(0) != null && cmds.get(cmds.length() - 1) != null) return true;
+        long now = System.currentTimeMillis();
+        if (now < nextConnectAttemptMs) return cmds.get(0) != null;
+        boolean opened = false;
+        for (int i = 0; i < cmds.length(); i++) {
+            if (cmds.get(i) != null) continue;
+            try {
+                StatefulRedisConnection<String, String> c = client.connect();
+                conns.set(i, c);
+                cmds.set(i, c.async());
+                opened = true;
+            } catch (RuntimeException e) {
+                nextConnectAttemptMs = now + 1000;
+                break;
+            }
+        }
+        if (opened) loadScripts();
+        return cmds.get(0) != null;
     }
 
     /** Loads both scripts; also called again whenever Redis answers NOSCRIPT (after a restart). */
     public void loadScripts() {
+        RedisAsyncCommands<String, String> c = cmds.get(0);
+        if (c == null) return;
         try {
-            cmd.scriptLoad(COUNT_ONCE).get(2, TimeUnit.SECONDS);
-            cmd.scriptLoad(SPEND_ONCE).get(2, TimeUnit.SECONDS);
-            cmd.scriptLoad(COUNT_POD_ONCE).get(2, TimeUnit.SECONDS);
+            c.scriptLoad(COUNT_ONCE).get(2, TimeUnit.SECONDS);
+            c.scriptLoad(SPEND_ONCE).get(2, TimeUnit.SECONDS);
+            c.scriptLoad(COUNT_POD_ONCE).get(2, TimeUnit.SECONDS);
         } catch (Exception e) {
             // Redis unreachable right now; evalsha will fall back to eval when it returns.
         }
@@ -138,7 +158,14 @@ public final class RedisCounters implements CapStore, AutoCloseable {
     }
 
     private RedisAsyncCommands<String, String> pick() {
-        return cmds.length == 1 ? cmd : cmds[Math.floorMod(next.getAndIncrement(), cmds.length)];
+        RedisAsyncCommands<String, String> c = cmds.length() == 1 ? cmds.get(0)
+                : cmds.get(Math.floorMod(next.getAndIncrement(), cmds.length()));
+        if (c != null) return c;
+        if (ensureConnected()) {
+            c = cmds.get(0);
+            if (c != null) return c;
+        }
+        throw new CapStoreUnavailableException("redis not connected", null);
     }
 
     private <T> RedisFuture<T> evalScript(String sha, String script, ScriptOutputType type, String[] keys, String... args) {
@@ -213,8 +240,8 @@ public final class RedisCounters implements CapStore, AutoCloseable {
                         String.valueOf(CapKeys.EVENT_TTL_S), String.valueOf(CapKeys.DAY_TTL_S),
                         String.valueOf(CapKeys.WEEK_TTL_S), String.valueOf(CapKeys.HOUR_TTL_S));
             } else {
-                for (int i = 1; i < counters.length; i++) cmd.incr(counters[i]);
-                f = cmd.incr(counters[0]);
+                for (int i = 1; i < counters.length; i++) pick().incr(counters[i]);
+                f = pick().incr(counters[0]);
             }
         } catch (RuntimeException e) {
             writeErrors.increment();
@@ -254,7 +281,7 @@ public final class RedisCounters implements CapStore, AutoCloseable {
     /** Counts confirmed spend once per event id. Returns 1 if this call counted it. */
     public RedisFuture<Long> recordSpendAsync(String campaignId, String eventId, long micros, long tsMs) {
         if (!idempotent) {
-            return cmd.incrby(spendKey(campaignId, Windows.day(tsMs)), micros);
+            return pick().incrby(spendKey(campaignId, Windows.day(tsMs)), micros);
         }
         return evalScript(spendSha, SPEND_ONCE, ScriptOutputType.INTEGER,
                 new String[]{spendEventKey(campaignId, eventId), spendKey(campaignId, Windows.day(tsMs))},
@@ -268,7 +295,7 @@ public final class RedisCounters implements CapStore, AutoCloseable {
         for (String c : campaignIds) keys.add(spendKey(c, day));
         List<KeyValue<String, String>> v;
         try {
-            v = cmd.mget(keys.toArray(String[]::new)).get(1, TimeUnit.SECONDS);
+            v = pick().mget(keys.toArray(String[]::new)).get(1, TimeUnit.SECONDS);
         } catch (Exception e) {
             throw new CapStoreUnavailableException("spend read failed", e);
         }
@@ -282,12 +309,14 @@ public final class RedisCounters implements CapStore, AutoCloseable {
     }
 
     public RedisAsyncCommands<String, String> commands() {
-        return cmd;
+        return pick();
     }
 
     @Override
     public void close() {
-        for (StatefulRedisConnection<String, String> c : conns) c.close();
+        for (int i = 0; i < conns.length(); i++) {
+            if (conns.get(i) != null) conns.get(i).close();
+        }
         client.shutdown();
     }
 }

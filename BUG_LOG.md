@@ -85,3 +85,15 @@ last.
   and the scripts' exit trap removed the directory without checking the owner.
 - **Fix:** `scripts/lib.sh` only removes the lock when its owner line names this process. One
   calibration run overlapped the other project's load test; no ledger number comes from it.
+
+## 9. A serving node could not start while Redis was down
+
+- **Found by:** experiment 6. The Redis-down leg with the default cap mode served 8,000 of 8,000
+  requests, but the next leg restarts the server in `unknown_deny` mode, and the restart failed:
+  the counter client connected in its constructor, and Lettuce throws when the host refuses.
+- **What happened:** a node that was already running survived the outage (Lettuce reconnects
+  and rejects commands meanwhile), but a node started during it could not come up at all, which
+  is exactly when a fleet is scaling out or restarting.
+- **Fix:** `RedisCounters` opens its connections lazily and retries at most once a second; until
+  one is open, reads fail fast into the cap mode and writes are counted as errors
+  (`RedisDownTest`). The leg was rerun (`scripts/exp6-rest.sh`).
