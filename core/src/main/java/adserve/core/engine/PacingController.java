@@ -52,7 +52,17 @@ public final class PacingController {
     }
 
     public static PacingController standard(long slotMs, Function<Campaign, PacingPlan> plans, BudgetLedger budget) {
-        return new PacingController(slotMs, plans, (c, p) -> Pacers.create(c.pacer(), p), budget);
+        return new PacingController(slotMs, plans,
+                (c, p) -> Pacers.create(c.pacer(), p, Pacers.warmStart(c, p, maxValue(c))), budget);
+    }
+
+    /** Highest single-impression value among a campaign's creatives. */
+    public static long maxValue(Campaign c) {
+        long v = 0;
+        for (var cr : c.creatives()) {
+            v = Math.max(v, adserve.core.model.Pricing.impressionValueMicros(c.cpcBidMicros(), cr.clickRate(), cr.durationS()));
+        }
+        return v;
     }
 
     private State state(Campaign c, long day) {

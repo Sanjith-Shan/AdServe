@@ -15,20 +15,27 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Netty gRPC server whose handlers run on virtual threads: the one blocking call on the decision
+ * Netty gRPC server whose handlers run, by default, on virtual threads: the one blocking call on the decision
  * path (the counter fetch) parks a virtual thread instead of holding a platform thread.
  */
 public class GrpcServer implements SmartLifecycle {
     private static final Logger log = LoggerFactory.getLogger(GrpcServer.class);
     private final int port;
     private final BindableService service;
-    private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+    private final ExecutorService executor;
     private final HealthStatusManager health = new HealthStatusManager();
     private Server server;
 
-    public GrpcServer(int port, BindableService service) {
+    public GrpcServer(int port, BindableService service, String executorSpec) {
         this.port = port;
         this.service = service;
+        if (executorSpec == null || executorSpec.equals("virtual")) {
+            this.executor = Executors.newVirtualThreadPerTaskExecutor();
+        } else if (executorSpec.startsWith("platform:")) {
+            this.executor = Executors.newFixedThreadPool(Integer.parseInt(executorSpec.substring(9)));
+        } else {
+            throw new IllegalArgumentException("adserve.executor must be virtual or platform:N, got " + executorSpec);
+        }
     }
 
     @Override

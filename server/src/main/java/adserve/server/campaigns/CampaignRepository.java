@@ -95,6 +95,22 @@ public class CampaignRepository {
                 cr.id(), campaignId, cr.durationS(), cr.clickRate());
     }
 
+    public java.util.Optional<Campaign> find(String id) {
+        return loadAll().stream().filter(c -> c.id().equals(id)).findFirst();
+    }
+
+    public Map<String, String> advertisers() {
+        Map<String, String> out = new LinkedHashMap<>();
+        jdbc.query("select id, name from advertisers order by id", rs -> {
+            out.put(rs.getString(1), rs.getString(2));
+        });
+        return out;
+    }
+
+    public boolean setActive(String id, boolean active) {
+        return jdbc.update("update campaigns set active = ?, updated_at = now() where id = ?", active, id) == 1;
+    }
+
     public int count() {
         Integer n = jdbc.queryForObject("select count(*) from campaigns", Integer.class);
         return n == null ? 0 : n;

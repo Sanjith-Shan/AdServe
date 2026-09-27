@@ -37,7 +37,7 @@ public class ServingConfiguration {
 
     @Bean(destroyMethod = "close")
     public RedisCounters redisCounters(AdServeProperties p) {
-        return new RedisCounters(p.redis().uri(), p.redis().capTimeoutMs(), true);
+        return new RedisCounters(p.redis().uri(), p.redis().capTimeoutMs(), true, Math.max(1, p.redis().connections()));
     }
 
     @Bean(destroyMethod = "close")
@@ -112,6 +112,6 @@ public class ServingConfiguration {
 
     @Bean
     public GrpcServer grpcServer(AdServeProperties p, DecisionService service) {
-        return new GrpcServer(p.grpcPort(), new AdDecisionGrpcService(service));
+        return new GrpcServer(p.grpcPort(), new AdDecisionGrpcService(service), p.executor());
     }
 }

@@ -38,7 +38,8 @@ public final class LoadGen implements AutoCloseable {
         public final LongAdder other = new LongAdder();
         public final LongAdder podAds = new LongAdder();
         public final LongAdder emptyPods = new LongAdder();
-        Histogram total;
+        public final java.util.concurrent.atomic.AtomicLong firstIntendedNs = new java.util.concurrent.atomic.AtomicLong(Long.MAX_VALUE);
+        public final java.util.concurrent.atomic.AtomicLong lastDoneNs = new java.util.concurrent.atomic.AtomicLong(Long.MIN_VALUE);
 
         long sent() {
             return ok.sum() + shed.sum() + unavailable.sum() + deadline.sum() + other.sum();
@@ -110,7 +111,10 @@ public final class LoadGen implements AutoCloseable {
     }
 
     private static void record(Tally t, long intendedNs) {
-        long us = Math.max(1, (System.nanoTime() - intendedNs) / 1000);
+        long now = System.nanoTime();
+        t.firstIntendedNs.accumulateAndGet(intendedNs, Math::min);
+        t.lastDoneNs.accumulateAndGet(now, Math::max);
+        long us = Math.max(1, (now - intendedNs) / 1000);
         t.latency.recordValue(Math.min(us, 3_600_000_000L));
     }
 
@@ -128,6 +132,9 @@ public final class LoadGen implements AutoCloseable {
         n.put("error_rate", sent == 0 ? 0 : (double) (sent - t.ok.sum() - t.shed.sum()) / sent);
         n.put("shed_rate", sent == 0 ? 0 : (double) t.shed.sum() / sent);
         n.put("achieved_ok_per_s", t.ok.sum() / seconds);
+        double span = t.lastDoneNs.get() > t.firstIntendedNs.get() ? (t.lastDoneNs.get() - t.firstIntendedNs.get()) / 1e9 : 0;
+        n.put("first_send_to_last_response_s", span);
+        n.put("achieved_ok_per_s_over_span", span > 0 ? t.ok.sum() / span : 0);
         n.put("p50_ms", h.getValueAtPercentile(50) / 1000.0);
         n.put("p90_ms", h.getValueAtPercentile(90) / 1000.0);
         n.put("p99_ms", h.getValueAtPercentile(99) / 1000.0);

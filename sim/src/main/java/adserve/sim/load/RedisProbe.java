@@ -16,18 +16,24 @@ public final class RedisProbe {
         String mode = a.length > 0 ? a[0] : "virtual";
         double rate = a.length > 1 ? Double.parseDouble(a[1]) : 2000;
         int seconds = a.length > 2 ? Integer.parseInt(a[2]) : 5;
-        try (RedisCounters rc = new RedisCounters("redis://localhost:26379", 1000, true)) {
+        int keys = a.length > 3 ? Integer.parseInt(a[3]) : 10;
+        int conns = a.length > 4 ? Integer.parseInt(a[4]) : 1;
+        RedisCounters[] pool = new RedisCounters[conns];
+        for (int c = 0; c < conns; c++) pool[c] = new RedisCounters("redis://localhost:26379", 1000, true);
+        {
+            RedisCounters rc0 = pool[0];
             ExecutorService ex = mode.equals("virtual") ? Executors.newVirtualThreadPerTaskExecutor()
                     : Executors.newFixedThreadPool(64);
             Recorder rec = new Recorder(3);
             List<String> ids = new ArrayList<>();
-            for (int i = 0; i < 10; i++) ids.add("c" + i);
+            for (int i = 0; i < keys / 2; i++) ids.add("c" + i);
             long n = (long) (rate * seconds);
             long start = System.nanoTime();
             for (long i = 0; i < n; i++) {
                 long intended = start + (long) (i * 1e9 / rate);
                 while (System.nanoTime() < intended) LockSupport.parkNanos(50_000);
                 String viewer = "v" + i;
+                RedisCounters rc = pool[(int) (i % conns)];
                 ex.submit(() -> {
                     rc.fetch(viewer, ids, 1_370_950_000_000L);
                     rec.recordValue((System.nanoTime() - intended) / 1000);
@@ -36,7 +42,8 @@ public final class RedisProbe {
             ex.shutdown();
             ex.awaitTermination(30, TimeUnit.SECONDS);
             var h = rec.getIntervalHistogram();
-            System.out.printf("%s rate=%.0f p50=%dus p99=%dus max=%dus%n", mode, rate,
+            for (RedisCounters r : pool) r.close();
+            System.out.printf("%s rate=%.0f keys=%d conns=%d p50=%dus p99=%dus max=%dus%n", mode, rate, keys, conns,
                     h.getValueAtPercentile(50), h.getValueAtPercentile(99), h.getMaxValue());
         }
     }

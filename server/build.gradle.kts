@@ -9,6 +9,9 @@ extra["testcontainers.version"] = libs.versions.testcontainers.get()
 dependencies {
     implementation(project(":core"))
     implementation(project(":beacons"))
+    implementation(platform("com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:${libs.versions.dgs.get()}"))
+    implementation("com.netflix.graphql.dgs:graphql-dgs-spring-graphql-starter")
+    implementation("com.netflix.graphql.dgs:graphql-dgs-extended-scalars")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
@@ -21,6 +24,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("com.netflix.graphql.dgs:graphql-dgs-spring-graphql-starter-test")
     testImplementation(platform(libs.tc.bom))
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-postgresql")

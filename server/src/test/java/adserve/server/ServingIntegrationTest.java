@@ -77,6 +77,7 @@ class ServingIntegrationTest {
     @Autowired CampaignRepository repo;
     @Autowired CampaignCache cache;
     @Autowired GrpcServer grpc;
+    @Autowired com.netflix.graphql.dgs.DgsQueryExecutor graphql;
 
     static final long T0 = 1_370_950_000_000L;
 
@@ -123,5 +124,35 @@ class ServingIntegrationTest {
         } finally {
             ch.shutdownNow();
         }
+    }
+
+    @Test
+    void aCampaignCreatedThroughGraphQlIsServedByTheNextDecision() {
+        String mutation = """
+                mutation {
+                  createCampaign(input: {
+                    id: "gql-1", advertiserId: "gql-adv", advertiserName: "GraphQL Advertiser", name: "Launch week",
+                    category: "software", cpcBidMicros: 90000000, dailyBudgetMicros: 5000000000,
+                    startsAt: "2013-06-10", endsAt: "2013-06-13", pacer: UNPACED, capPerDay: 2,
+                    targeting: { geos: ["r-only-here"], devices: [TV] },
+                    creatives: [{ id: "gql-1-30", durationS: 30, clickRate: 0.02 }]
+                  }) { id flight { dailyBudgetMicros } creatives { valueMicros } }
+                }""";
+        Long budget = graphql.executeAndExtractJsonPath(mutation, "data.createCampaign.flight.dailyBudgetMicros");
+        assertThat(budget).isEqualTo(5_000_000_000L);
+
+        ManagedChannel ch = ManagedChannelBuilder.forAddress("localhost", grpc.port()).usePlaintext().build();
+        try {
+            AdRequest req = AdRequest.newBuilder().setRequestId("gql-req").setViewerId("viewer-gql").setTitleId("t")
+                    .setGenre("drama").setBreakLengthS(60).setDevice("tv").setRegion(Region.US_EAST)
+                    .setPriority(Priority.VOD).setTsMs(T0).setGeo("r-only-here").build();
+            AdResponse resp = AdDecisionGrpc.newBlockingStub(ch).decide(req);
+            assertThat(resp.getPodList()).extracting(i -> i.getCreative().getCampaignId()).contains("gql-1");
+        } finally {
+            ch.shutdownNow();
+        }
+        Number spend = graphql.executeAndExtractJsonPath(
+                "{ campaign(id: \"gql-1\") { delivery { spendMicros } } }", "data.campaign.delivery.spendMicros");
+        assertThat(spend.longValue()).isPositive();
     }
 }

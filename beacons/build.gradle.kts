@@ -6,7 +6,8 @@ plugins {
 dependencies {
     api(project(":core"))
     api(libs.lettuce)
-    implementation(libs.kafka.clients)
+    api(libs.kafka.clients)
+    implementation("io.micrometer:micrometer-registry-prometheus:1.15.4")
     implementation(libs.slf4j.api)
     runtimeOnly(libs.slf4j.simple)
 

@@ -35,6 +35,11 @@ public class BudgetSync {
         lastDayMs = decisionTsMs;
     }
 
+    /** The time the serving day is measured from: the last decision's clock, or now. */
+    public long lastDecisionMs() {
+        return requestClock ? lastDayMs : System.currentTimeMillis();
+    }
+
     @Scheduled(fixedDelay = 1000)
     public void sync() {
         CampaignSnapshot s = snapshots.current();

@@ -73,9 +73,7 @@ class PacerTest {
 
     @Test
     void oracleTracksPlan() {
-        long[] full = new long[SLOTS];
-        java.util.Arrays.fill(full, FULL);
-        assertPaced(() -> new OraclePacer(full));
+        assertPaced(() -> new OraclePacer(PacingPlan.flat(SLOTS), 0.5));
     }
 
     @Test

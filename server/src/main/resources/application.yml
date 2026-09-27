@@ -40,6 +40,7 @@ adserve:
   redis:
     uri: redis://localhost:26379
     cap-timeout-ms: 20
+    connections: 4
   cap-mode: UNKNOWN_ALLOW
   solver: dp
   snapshot-refresh-ms: 2000
@@ -48,6 +49,7 @@ adserve:
   pacing-slot-ms: 60000
   forecast-file: data/work/forecast.json
   seed-file: ""
+  executor: virtual
   shedding:
     enabled: false
     capacity-per-second: 8000

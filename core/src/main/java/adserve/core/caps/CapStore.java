@@ -21,4 +21,12 @@ public interface CapStore {
      * May complete asynchronously; never awaited on the decision path.
      */
     void recordImpression(String viewerId, String campaignId, String eventId, long tsMs);
+
+    /**
+     * Counts every impression of one pod ({@code campaignIds[i]} with {@code eventIds[i]}). Stores
+     * that can do it in one round trip override this; the default loops.
+     */
+    default void recordPod(String viewerId, String[] campaignIds, String[] eventIds, long tsMs) {
+        for (int i = 0; i < campaignIds.length; i++) recordImpression(viewerId, campaignIds[i], eventIds[i], tsMs);
+    }
 }

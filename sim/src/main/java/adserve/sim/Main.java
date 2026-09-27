@@ -13,6 +13,11 @@ public final class Main {
         switch (args[0]) {
             case "load-ipinyou" -> adserve.sim.data.IpinyouLoader.main(rest);
             case "redis-probe" -> adserve.sim.load.RedisProbe.main(rest);
+            case "forecast" -> adserve.sim.pacing.Forecast.main(rest);
+            case "exp2-pacing" -> adserve.sim.pacing.PacingExperiment.main(rest);
+            case "exp3-caps" -> adserve.sim.caps.CapExperiment.main(rest);
+            case "burst" -> adserve.sim.load.BurstExperiment.main(rest);
+            case "overload" -> adserve.sim.load.OverloadExperiment.main(rest);
             case "exp4-pods" -> adserve.sim.pods.PodExperiment.main(rest);
             case "smoke" -> adserve.sim.load.Smoke.main(rest);
             case "replay-check" -> adserve.sim.load.ReplayCheck.main(rest);

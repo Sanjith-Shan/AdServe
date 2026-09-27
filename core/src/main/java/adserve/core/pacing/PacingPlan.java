@@ -9,6 +9,7 @@ public final class PacingPlan {
     private final double[] weight;
     private final double[] cumulative;
     private final long slotMs;
+    private final double totalWeight;
 
     public PacingPlan(double[] weight, long dayMs) {
         if (weight.length == 0) throw new IllegalArgumentException("empty plan");
@@ -26,6 +27,12 @@ public final class PacingPlan {
         }
         cumulative[weight.length - 1] = 1.0;
         this.slotMs = dayMs / weight.length;
+        this.totalWeight = total;
+    }
+
+    /** Sum of the raw forecast weights: for a traffic forecast, eligible requests in the day. */
+    public double totalWeight() {
+        return totalWeight;
     }
 
     /** A flat plan with {@code slots} equal slots over a 24-hour day. */

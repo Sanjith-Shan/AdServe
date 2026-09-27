@@ -137,13 +137,23 @@ public final class DecisionEngine {
         m = k;
         t = lap(Stage.POLICY, t);
 
-        // 4. Frequency cap: one round trip for every surviving campaign plus the viewer's hourly load.
+        // 4. Frequency cap: one round trip for every surviving capped campaign plus the viewer's
+        // hourly ad load. Uncapped campaigns need no counter.
         String capState = "ok";
         int[] capRemaining = new int[n];
         int hourRemaining = config.maxAdsPerViewerHour();
         if (m > 0) {
             List<String> ids = new ArrayList<>(m);
-            for (int j = 0; j < m; j++) ids.add(snap.campaign(live[j]).id());
+            int[] slotOf = new int[m];
+            for (int j = 0; j < m; j++) {
+                Campaign c = snap.campaign(live[j]);
+                if (c.cap().capped()) {
+                    slotOf[j] = ids.size();
+                    ids.add(c.id());
+                } else {
+                    slotOf[j] = -1;
+                }
+            }
             CapCounts counts;
             try {
                 counts = caps.fetch(req.getViewerId(), ids, now);
@@ -158,8 +168,10 @@ public final class DecisionEngine {
                 int i = live[j];
                 Campaign c = snap.campaign(i);
                 int rem;
-                if (counts.known()) {
-                    rem = c.cap().remaining(counts.day()[j], counts.week()[j]);
+                if (slotOf[j] < 0) {
+                    rem = Integer.MAX_VALUE;
+                } else if (counts.known()) {
+                    rem = c.cap().remaining(counts.day()[slotOf[j]], counts.week()[slotOf[j]]);
                 } else if (config.capMode() == CapMode.UNKNOWN_DENY && c.cap().capped()) {
                     rem = 0;
                 } else {
@@ -218,7 +230,8 @@ public final class DecisionEngine {
                 .setDecidedTsMs(now)
                 .setCandidatesConsidered(matched);
         String pacerName = "";
-        List<String[]> served = new ArrayList<>(pod.size());
+        String[] servedCampaigns = new String[pod.size()];
+        String[] servedEvents = new String[pod.size()];
         for (int slot = 0; slot < pod.size(); slot++) {
             Item it = pod.items().get(slot);
             int[] ref = refs.get(it.ref());
@@ -246,7 +259,8 @@ public final class DecisionEngine {
                     .setSlot(slot)
                     .setPriceMicros(it.value())
                     .addAllTracking(TRACKING));
-            served.add(new String[]{c.id(), impressionId});
+            servedCampaigns[slot] = c.id();
+            servedEvents[slot] = EventIds.impression(impressionId);
             if (pacerName.isEmpty()) pacerName = pacing.pacer(c, day).kind().wire();
             budget.charge(c.id(), day, it.value());
             pacing.recordSpend(c, day, it.value());
@@ -255,9 +269,7 @@ public final class DecisionEngine {
         t = lap(Stage.TOKENS, t);
 
         // 8. Log and count, both fire-and-forget.
-        for (String[] s : served) {
-            caps.recordImpression(req.getViewerId(), s[0], EventIds.impression(s[1]), now);
-        }
+        if (pod.size() > 0) caps.recordPod(req.getViewerId(), servedCampaigns, servedEvents, now);
         long micros = (System.nanoTime() - start) / 1_000;
         resp.setDecisionLatencyUs((int) Math.min(Integer.MAX_VALUE, micros));
         AdResponse response = resp.build();

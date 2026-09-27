@@ -24,6 +24,10 @@ public final class Machine {
         m.put("power_source", firstLine("pmset", "-g", "batt"));
     }
 
+    public static String loadAvg() {
+        return sysctl("vm.loadavg");
+    }
+
     static String pmset(String key) {
         for (String line : lines("pmset", "-g")) {
             String t = line.trim();

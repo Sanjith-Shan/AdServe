@@ -1,0 +1,106 @@
+# Campaign management. GraphQL for the people who manage campaigns; the decision path stays on
+# gRPC. Money is in micro-units (Long).
+
+scalar Long
+
+type Query {
+    advertisers: [Advertiser!]!
+    campaigns(advertiserId: ID, activeOnly: Boolean = false): [Campaign!]!
+    campaign(id: ID!): Campaign
+}
+
+type Mutation {
+    "Creates or replaces a campaign with its flight and creatives. It is live on the next decision."
+    createCampaign(input: CampaignInput!): Campaign!
+    addCreative(campaignId: ID!, input: CreativeInput!): Campaign!
+    setCampaignActive(id: ID!, active: Boolean!): Campaign!
+}
+
+type Advertiser {
+    id: ID!
+    name: String!
+    campaigns: [Campaign!]!
+}
+
+type Campaign {
+    id: ID!
+    name: String!
+    advertiser: Advertiser!
+    category: String!
+    cpcBidMicros: Long!
+    pacer: Pacer!
+    cap: FrequencyCap!
+    targeting: Targeting!
+    flight: Flight!
+    creatives: [Creative!]!
+    active: Boolean!
+    "Delivery so far today, from the serving node's view."
+    delivery: Delivery!
+}
+
+type Flight {
+    startsAt: String!
+    endsAt: String!
+    dailyBudgetMicros: Long!
+}
+
+type Creative {
+    id: ID!
+    durationS: Int!
+    clickRate: Float!
+    "What one impression of this creative is worth: CPC bid x click rate x duration factor."
+    valueMicros: Long!
+}
+
+type FrequencyCap {
+    perDay: Int!
+    perWeek: Int!
+}
+
+type Targeting {
+    geos: [String!]!
+    devices: [Device!]!
+    segmentsAny: [String!]!
+    excludedGenres: [String!]!
+}
+
+type Delivery {
+    day: String!
+    spendMicros: Long!
+    confirmedSpendMicros: Long!
+    budgetFraction: Float!
+    pacingRate: Float
+}
+
+enum Pacer { UNPACED THROTTLE SMART PID }
+enum Device { TV MOBILE WEB }
+
+input CampaignInput {
+    id: ID!
+    advertiserId: ID!
+    advertiserName: String
+    name: String!
+    category: String!
+    cpcBidMicros: Long!
+    dailyBudgetMicros: Long!
+    startsAt: String!
+    endsAt: String!
+    pacer: Pacer = THROTTLE
+    capPerDay: Int = 0
+    capPerWeek: Int = 0
+    targeting: TargetingInput
+    creatives: [CreativeInput!]!
+}
+
+input TargetingInput {
+    geos: [String!] = []
+    devices: [Device!] = []
+    segmentsAny: [String!] = []
+    excludedGenres: [String!] = []
+}
+
+input CreativeInput {
+    id: ID!
+    durationS: Int!
+    clickRate: Float!
+}

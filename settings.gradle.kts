@@ -1,3 +1,3 @@
 rootProject.name = "adserve"
 
-include("api", "core", "server", "beacons", "sim")
+include("api", "core", "server", "beacons", "sim", "billing")
