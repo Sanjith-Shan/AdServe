@@ -12,14 +12,24 @@ mkdir -p "$LOGDIR"
 # mkdir is the atomic test-and-set; a failed mkdir means someone else holds it, so wait.
 # The lock is only ever removed by the run whose owner line it carries.
 LOCK_OWNER="adserve pid=$$"
+# Fairness: after releasing, wait 60 s before taking it again, so the other project gets a turn.
+LAST_RELEASE=/tmp/claude-501/adserve.last_release
 take_lock() {
   mkdir -p /tmp/claude-501
-  until mkdir "$LOCK" 2>/dev/null; do echo "waiting for bench lock held by $(cat $LOCK/owner 2>/dev/null)"; sleep 30; done
+  if [ -f "$LAST_RELEASE" ]; then
+    local since=$(( $(date +%s) - $(stat -f %m "$LAST_RELEASE" 2>/dev/null || stat -c %Y "$LAST_RELEASE") ))
+    [ "$since" -lt 60 ] && sleep $(( 60 - since ))
+  fi
+  local n=0
+  until mkdir "$LOCK" 2>/dev/null; do
+    n=$((n + 1)); [ $((n % 30)) -eq 1 ] && echo "waiting for bench lock held by $(cat $LOCK/owner 2>/dev/null)"
+    sleep 2
+  done
   echo "$LOCK_OWNER since=$(date +%H:%M:%S) task=$1" > "$LOCK/owner"
   trap 'stop_server; release_lock' EXIT
 }
 release_lock() {
-  if [ -f "$LOCK/owner" ] && grep -q "^$LOCK_OWNER " "$LOCK/owner"; then rm -rf "$LOCK"; fi
+  if [ -f "$LOCK/owner" ] && grep -q "^$LOCK_OWNER " "$LOCK/owner"; then rm -rf "$LOCK"; touch "$LAST_RELEASE"; fi
 }
 
 # start_server <name> [extra spring args...]
