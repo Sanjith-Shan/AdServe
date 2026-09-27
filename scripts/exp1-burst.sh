@@ -12,8 +12,8 @@ docker compose up -d --wait kafka redis postgres
 
 fresh_state
 start_server adserve
-$SIM burst adserve "$SIZES" "$REPEATS" 1.0
+$SIM burst "adserve${SUFFIX:-}" "$SIZES" "$REPEATS" 1.0
 
 fresh_state
 start_server legacy --adserve.legacy-sync-write=true
-$SIM burst legacy_sync_write "$SIZES" "$REPEATS" 1.0
+$SIM burst "legacy_sync_write${SUFFIX:-}" "$SIZES" "$REPEATS" 1.0

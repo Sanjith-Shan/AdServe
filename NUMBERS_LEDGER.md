@@ -119,11 +119,23 @@ File `results/exp6_dependency.jsonl`. Machine: Apple M3 Pro, 12 cores, 18 GB, lo
 | redis_down_allow | 8,000 | 7,668 | 1 | 8,000 | 0.0000 | 0.24 | 5.90 | 12.49 | 1.72 | 4.87 |
 | redis_down_allow | 8,000 | 7,668 | 2 | 8,000 | 0.0000 | 0.28 | 74.56 | 129.53 | 1.70 | 5.83 |
 | redis_down_allow | 8,000 | 7,668 | 3 | 8,000 | 0.0000 | 0.28 | 16.20 | 23.66 | 1.72 | 5.44 |
+| redis_plus_0ms | 8,000 | 7,668 | 1 | 8,000 | 0.0000 | 4.33 | 69.69 | 84.99 | 1.71 | 7.56 |
+| redis_plus_0ms | 8,000 | 7,668 | 2 | 8,000 | 0.0000 | 1.24 | 13.02 | 15.16 | 1.69 | 7.35 |
+| redis_plus_0ms | 8,000 | 7,668 | 3 | 8,000 | 0.0000 | 11.05 | 56.77 | 91.52 | 1.70 | 6.98 |
+| redis_plus_5ms | 8,000 | 7,668 | 1 | 8,000 | 0.0000 | 11.54 | 34.17 | 41.70 | 1.71 | 6.29 |
+| redis_plus_5ms | 8,000 | 7,668 | 2 | 8,000 | 0.0000 | 7.21 | 26.66 | 32.11 | 1.70 | 6.36 |
+| redis_plus_5ms | 8,000 | 7,668 | 3 | 8,000 | 0.0000 | 8.89 | 25.41 | 27.01 | 1.71 | 6.01 |
+| redis_plus_50ms | 8,000 | 7,668 | 1 | 8,000 | 0.0000 | 21.68 | 92.54 | 105.22 | 1.72 | 6.30 |
+| redis_plus_50ms | 8,000 | 7,668 | 2 | 8,000 | 0.0000 | 20.50 | 24.48 | 26.72 | 1.73 | 6.03 |
+| redis_plus_50ms | 8,000 | 7,668 | 3 | 8,000 | 0.0000 | 20.64 | 25.73 | 33.63 | 1.72 | 5.70 |
 
 - `all_up`: every dependency up
 - `kafka_down`: Kafka stopped; the decision log buffer fills and drops, serving continues
 - `postgres_down`: Postgres stopped after the snapshot loaded; decisions come from the in-process snapshot
 - `redis_down_allow`: Redis stopped, cap mode unknown_allow: serve, caps unknown
+- `redis_plus_0ms`: Redis behind Toxiproxy with 0 ms added per response; cap check deadline 20 ms, cap mode unknown_allow
+- `redis_plus_50ms`: Redis behind Toxiproxy with 50 ms added per response; cap check deadline 20 ms, cap mode unknown_allow
+- `redis_plus_5ms`: Redis behind Toxiproxy with 5 ms added per response; cap check deadline 20 ms, cap mode unknown_allow
 
 ## Experiment 8: campaign snapshot over Hollow
 
@@ -133,6 +145,46 @@ File `results/exp8_hollow.jsonl`. Machine: Apple M3 Pro, 12 cores, 18 GB, low po
 |---|---|---|---|---|
 | 55 | 21,961 B | 1,066 B | 1002 ms | 1020 ms |
 | 5,000 | 1,177,292 B | 1,075 B | 1003 ms | 1036 ms |
+
+## Experiment 9: garbage collector and thread model
+
+The same bursts under generational ZGC with a virtual thread per request (default), G1 with virtual threads, and generational ZGC with 64 platform threads.
+
+File `results/exp9_runtime.jsonl`. Machine: Apple M3 Pro, 12 cores, 18 GB, low power mode 1. Burst: N requests in 2 s, gamma arrival (k=2, theta 0.4 s), all LIVE, fresh simulated viewers per repeat, real ad-break contexts from iPinYou 2013-06-11. Latency is from each request's intended send time (open loop).
+
+| Label | N in 2 s | Offered peak /s | Repeat | OK | Error rate | p50 ms | p99 ms | p99.9 ms | Ads per pod | Load avg before |
+|---|---|---|---|---|---|---|---|---|---|---|
+| zgc_virtual | 8,000 | 7,668 | 1 | 8,000 | 0.0000 | 1.80 | 26.24 | 34.49 | 1.48 | 7.21 |
+| zgc_virtual | 8,000 | 7,668 | 2 | 8,000 | 0.0000 | 4.08 | 54.62 | 64.48 | 1.49 | 6.62 |
+| zgc_virtual | 8,000 | 7,668 | 3 | 8,000 | 0.0000 | 1.65 | 21.49 | 24.85 | 1.47 | 6.33 |
+| zgc_virtual | 12,000 | 11,501 | 1 | 12,000 | 0.0000 | 43.87 | 135.42 | 168.19 | 1.49 | 6.85 |
+| zgc_virtual | 12,000 | 11,501 | 2 | 12,000 | 0.0000 | 22.78 | 61.76 | 78.97 | 1.48 | 6.78 |
+| zgc_virtual | 12,000 | 11,501 | 3 | 12,000 | 0.0000 | 13.10 | 63.20 | 77.69 | 1.49 | 7.25 |
+| g1_virtual | 8,000 | 7,668 | 1 | 8,000 | 0.0000 | 0.83 | 7.34 | 9.44 | 1.48 | 7.20 |
+| g1_virtual | 8,000 | 7,668 | 2 | 8,000 | 0.0000 | 0.66 | 10.20 | 19.04 | 1.47 | 7.34 |
+| g1_virtual | 8,000 | 7,668 | 3 | 8,000 | 0.0000 | 0.78 | 7.26 | 22.30 | 1.47 | 6.99 |
+| g1_virtual | 12,000 | 11,501 | 1 | 12,000 | 0.0000 | 21.45 | 42.69 | 49.22 | 1.50 | 6.75 |
+| g1_virtual | 12,000 | 11,501 | 2 | 12,000 | 0.0000 | 9.26 | 44.54 | 49.28 | 1.48 | 7.31 |
+| g1_virtual | 12,000 | 11,501 | 3 | 12,000 | 0.0000 | 8.02 | 21.04 | 25.20 | 1.49 | 7.04 |
+| zgc_platform64 | 8,000 | 7,668 | 1 | 8,000 | 0.0000 | 13.89 | 89.15 | 95.42 | 1.48 | 7.26 |
+| zgc_platform64 | 8,000 | 7,668 | 2 | 8,000 | 0.0000 | 1.44 | 49.02 | 59.10 | 1.48 | 6.30 |
+| zgc_platform64 | 8,000 | 7,668 | 3 | 8,000 | 0.0000 | 1.21 | 22.06 | 24.40 | 1.48 | 6.04 |
+| zgc_platform64 | 12,000 | 11,501 | 1 | 12,000 | 0.0000 | 4.60 | 38.27 | 40.96 | 1.49 | 5.71 |
+| zgc_platform64 | 12,000 | 11,501 | 2 | 12,000 | 0.0000 | 1.32 | 7.70 | 11.20 | 1.50 | 5.42 |
+| zgc_platform64 | 12,000 | 11,501 | 3 | 12,000 | 0.0000 | 135.17 | 193.28 | 209.92 | 1.49 | 5.10 |
+
+## JMH: method-level cost of the decision path
+
+File `results/jmh-hotpath.json`. One fork, 3 warm-up and 5 measured iterations, average time per call.
+
+| Benchmark | ns per call | error (99.9%) |
+|---|---|---|
+| fullDecision | 69,593 | 65,893 |
+| podDp | 7,275 | 39 |
+| podExact | 7,198 | 113 |
+| podGreedy | 1,682 | 29 |
+| targetingAllCampaigns | 174 | 1 |
+| tokenSign | 283 | 4 |
 
 ## Milestone 1: end-to-end replay check
 
