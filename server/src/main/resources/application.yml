@@ -41,7 +41,7 @@ adserve:
     uri: redis://localhost:26379
     cap-timeout-ms: 20
   cap-mode: UNKNOWN_ALLOW
-  solver: greedy_swap
+  solver: dp
   snapshot-refresh-ms: 2000
   legacy-sync-write: false
   use-request-clock: true

@@ -13,6 +13,7 @@ public final class Main {
         switch (args[0]) {
             case "load-ipinyou" -> adserve.sim.data.IpinyouLoader.main(rest);
             case "redis-probe" -> adserve.sim.load.RedisProbe.main(rest);
+            case "exp4-pods" -> adserve.sim.pods.PodExperiment.main(rest);
             case "smoke" -> adserve.sim.load.Smoke.main(rest);
             case "replay-check" -> adserve.sim.load.ReplayCheck.main(rest);
             default -> {
