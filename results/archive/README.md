@@ -12,3 +12,10 @@ given; the numbers in NUMBERS.md never come from this folder.
   eligible traffic. Every other row of this run is identical in configuration to the current
   file. The first run (before bugs 4 and 5 were fixed) was not saved; its headline figures are in
   BUG_LOG.md.
+
+- `exp7_billing_run1_job_not_running.jsonl`: the first billing run. The Flink job died at
+  startup (missing `flink-connector-base`, BUG_LOG bug 10), so the billing table stayed empty
+  and every row shows 0 billed. The audit also printed an agreement of 1.0 over zero campaigns
+  compared, which was a bug in the audit; it now reports null and exits non-zero on an empty
+  table. The player-side figures in these rows (impressions served, beacons and duplicates
+  sent) are valid but are superseded by the rerun.

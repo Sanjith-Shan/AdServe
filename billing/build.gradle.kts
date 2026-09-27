@@ -9,6 +9,7 @@ dependencies {
     implementation("org.apache.flink:flink-streaming-java:$flink")
     implementation("org.apache.flink:flink-clients:$flink")
     implementation("org.apache.flink:flink-connector-kafka:5.0.0-2.2")
+    implementation("org.apache.flink:flink-connector-base:$flink")
     implementation(libs.postgres)
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j2-impl:2.24.3")
     runtimeOnly("org.apache.logging.log4j:log4j-core:2.24.3")

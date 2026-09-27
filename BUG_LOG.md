@@ -97,3 +97,15 @@ last.
 - **Fix:** `RedisCounters` opens its connections lazily and retries at most once a second; until
   one is open, reads fail fast into the cap mode and writes are counted as errors
   (`RedisDownTest`). The leg was rerun (`scripts/exp6-rest.sh`).
+
+## 10. The billing job never ran, and the audit said everything agreed
+
+- **Found by:** experiment 7 (billing rows 0 for 5,000 served impressions) and then the job's
+  log (`NoClassDefFoundError: org/apache/flink/connector/base/source/reader/RecordEmitter`).
+- **What happened:** the Flink Kafka connector expects `flink-connector-base` from the Flink
+  distribution, which a standalone run does not have. The topology test passed because it feeds
+  the join from in-memory sources and never loads the Kafka source. Worse, the audit computed
+  its agreement as 1.0 when it had compared zero campaigns.
+- **Fix:** the dependency is declared; the audit reports null agreement when nothing was
+  compared and exits non-zero on an empty billing table, so a dead job fails the experiment
+  instead of passing it. The empty run is archived in `results/archive/`.

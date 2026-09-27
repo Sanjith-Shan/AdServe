@@ -121,9 +121,14 @@ public final class BillingAudit {
         out.put("billed_without_beacon", phantom.size());
         out.put("audit_campaigns_agree", agree);
         out.put("audit_campaigns_disagree", disagree);
-        out.put("audit_agreement", agree + disagree == 0 ? 1.0 : (double) agree / (agree + disagree));
+        if (agree + disagree == 0) out.putNull("audit_agreement");
+        else out.put("audit_agreement", (double) agree / (agree + disagree));
         out.put("wall_seconds", (System.currentTimeMillis() - t0) / 1000.0);
         Results.append("exp7_billing.jsonl", out);
         System.out.println(out.toPrettyString());
+        if (billed <= 0) {
+            System.err.println("the billing table is empty for this run: is the billing job running?");
+            System.exit(1);
+        }
     }
 }
