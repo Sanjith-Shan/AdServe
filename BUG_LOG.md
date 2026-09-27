@@ -124,3 +124,14 @@ last.
   and records the miss rate next to the latency, so every burst figure can be quoted with its
   enforcement rate. The zero-violation result of experiment 3 is unaffected (no burst, every
   fetch answered), but a burst figure is never quoted without its miss rate.
+
+## 12. Half the billed impressions looked rerouted
+
+- **Found by:** experiment 7's billing table: about 2,700 of 5,000 rows had `rerouted = true`
+  when only 2% of beacons were deliberately sent to the wrong region.
+- **What happened:** the simulated players sent each beacon to the region field of the log row
+  (a hash of the iPinYou region code, half US_EAST and half US_WEST), while the one serving node
+  in the experiment serves as US_EAST. So every beacon for a "US_WEST" row arrived in the wrong
+  region by construction. The deduplication counts were unaffected; the reroute column was noise.
+- **Fix:** a player sends beacons to the region in the response (`serving_region`), and a
+  misroute sends them to the other one. The run was repeated; the first rows are archived.

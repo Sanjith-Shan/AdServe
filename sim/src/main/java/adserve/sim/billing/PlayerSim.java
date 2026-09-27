@@ -66,7 +66,8 @@ public final class PlayerSim {
                             lost++;
                             continue;
                         }
-                        Region arrival = r.getRegion();
+                        // A beacon normally reaches the region that served the ad; a misroute sends it to the other.
+                        Region arrival = resp.getServingRegion();
                         if (rnd.nextDouble() < misrouteRate) {
                             arrival = arrival == Region.US_EAST ? Region.US_WEST : Region.US_EAST;
                             misrouted++;
