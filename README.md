@@ -31,7 +31,7 @@ ad break request (gRPC or REST)
 
 Around it: a beacon consumer that counts confirmed impressions with idempotent Lua scripts, a
 Flink job that joins beacons to decisions and writes a deduplicated billing table, a GraphQL
-campaign API on Netflix's open-source DGS framework, the campaign snapshot optionally delivered
+campaign API on the DGS framework, the campaign snapshot optionally delivered
 with Hollow, a React delivery console, and Prometheus and Grafana.
 
 ## Results
