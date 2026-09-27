@@ -237,6 +237,16 @@ Derived, deterministic, and assumed:
 No one watched anything. Viewers are simulated in the sense that the arrival, frequency and
 click structure is real and nothing else is.
 
+## Runtime choices
+
+The server runs on JDK 21 with a virtual thread per gRPC request, so the one blocking call (the
+counter fetch) parks a virtual thread instead of a platform thread. The collector is G1.
+Generational ZGC was the first default; experiment 9 measured both on the same bursts, and on
+this CPU-contended laptop G1 held a lower p99 and missed no counter deadlines where ZGC missed
+some, most likely because ZGC's concurrent collector threads compete for cores with the load
+generator. Every result row records the server's flags (`server_jvm`); rows before that field
+existed ran generational ZGC.
+
 ## Measurement
 
 HdrHistogram in the load generator, which is open loop: request i has an intended send time

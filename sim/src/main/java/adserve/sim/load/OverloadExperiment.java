@@ -53,6 +53,7 @@ public final class OverloadExperiment {
                     out.put("live_share", liveShare);
                     out.put("traffic", "real ad-break contexts from iPinYou 2013-06-11, fresh simulated viewers per run");
                     out.put("load_generator", "same machine, separate JVM, open loop, 8 gRPC channels");
+                    out.put("server_jvm", System.getenv().getOrDefault("SERVER_JVM_USED", "unrecorded"));
                     LoadGen.summarize(out, "live", live, seconds);
                     LoadGen.summarize(out, "vod", vod, seconds);
                     Results.append("exp5_shedding.jsonl", out);

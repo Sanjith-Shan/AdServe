@@ -22,6 +22,7 @@ for t in 20 50 100; do
 done
 stop_server
 trap 'docker compose --profile app stop adserve; release_lock' EXIT
+export SERVER_JVM_USED="container: -XX:+UseG1GC -Xms1536m -Xmx1536m"
 for t in 20 50 100; do
   fresh_state
   CAP_TIMEOUT_MS=$t docker compose --profile app up -d --force-recreate adserve

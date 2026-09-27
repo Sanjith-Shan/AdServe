@@ -70,6 +70,7 @@ public final class BurstExperiment {
                     out.put("warmup", warmSeconds + " s at " + (int) warmRate + "/s before the first burst");
                     out.put("traffic", "real ad-break contexts from iPinYou 2013-06-11, fresh simulated viewers per burst");
                     out.put("load_generator", "same machine, separate JVM, open loop, 8 gRPC channels");
+                    out.put("server_jvm", System.getenv().getOrDefault("SERVER_JVM_USED", "unrecorded"));
                     Thread.sleep(1500);
                     out.put("server_cap_unknown", ServerMetrics.value("adserve_cap_unknown_total") - capUnknown0);
                     out.put("server_decision_log_dropped", ServerMetrics.value("adserve_decision_log_dropped_total") - dropped0);

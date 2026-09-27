@@ -35,7 +35,7 @@ dependencies {
 
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
     workingDir = rootProject.projectDir
-    jvmArgs("-XX:+UseZGC", "-XX:+ZGenerational", "-Xms2g", "-Xmx2g")
+    jvmArgs("-XX:+UseG1GC", "-Xms2g", "-Xmx2g")
 }
 
 configurations.all {

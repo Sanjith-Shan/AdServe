@@ -33,10 +33,12 @@ release_lock() {
 }
 
 # start_server <name> [extra spring args...]
+# G1 is the default collector: experiment 9 measured it against generational ZGC on this machine.
 start_server() {
   local name=$1; shift
   stop_server
-  "$JAVA" ${SERVER_JVM:--XX:+UseZGC -XX:+ZGenerational} -Xms2g -Xmx2g -jar "$SERVER_JAR" \
+  export SERVER_JVM_USED="${SERVER_JVM:--XX:+UseG1GC} -Xms2g -Xmx2g"
+  "$JAVA" ${SERVER_JVM:--XX:+UseG1GC} -Xms2g -Xmx2g -jar "$SERVER_JAR" \
     --adserve.seed-file=data/work/campaigns.json --adserve.forecast-file=data/work/forecast.json "$@" \
     > "$LOGDIR/server-$name.log" 2>&1 &
   echo $! > "$LOGDIR/server.pid"

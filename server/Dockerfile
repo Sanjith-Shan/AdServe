@@ -4,4 +4,4 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY build/libs/server-0.1.0.jar /app/server.jar
 EXPOSE 28080 29100
-ENTRYPOINT ["java", "-XX:+UseZGC", "-XX:+ZGenerational", "-Xms1536m", "-Xmx1536m", "-jar", "/app/server.jar"]
+ENTRYPOINT ["java", "-XX:+UseG1GC", "-Xms1536m", "-Xmx1536m", "-jar", "/app/server.jar"]
