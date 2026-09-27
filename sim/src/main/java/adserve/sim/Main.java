@@ -20,6 +20,7 @@ public final class Main {
             case "overload" -> adserve.sim.load.OverloadExperiment.main(rest);
             case "exp7-billing" -> adserve.sim.billing.BillingAudit.main(rest);
             case "exp8-hollow" -> adserve.sim.data.HollowExperiment.main(rest);
+            case "demo" -> adserve.sim.billing.Demo.main(rest);
             case "exp4-pods" -> adserve.sim.pods.PodExperiment.main(rest);
             case "smoke" -> adserve.sim.load.Smoke.main(rest);
             case "replay-check" -> adserve.sim.load.ReplayCheck.main(rest);

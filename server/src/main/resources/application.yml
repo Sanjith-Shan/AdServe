@@ -7,6 +7,9 @@ spring:
   threads:
     virtual:
       enabled: true
+  graphql:
+    graphiql:
+      enabled: true
   datasource:
     url: jdbc:postgresql://localhost:25432/adserve
     username: adserve
