@@ -14,8 +14,17 @@ mkdir -p "$LOGDIR"
 LOCK_OWNER="adserve pid=$$"
 # Fairness: after releasing, wait 60 s before taking it again, so the other project gets a turn.
 LAST_RELEASE=/tmp/claude-501/adserve.last_release
+# Docker Desktop on this laptop has hung and restarted under load; wait for it rather than fail.
+wait_docker() {
+  local n=0
+  until docker info >/dev/null 2>&1 && docker compose ps >/dev/null 2>&1; do
+    n=$((n + 1)); [ $((n % 6)) -eq 1 ] && echo "waiting for Docker"
+    sleep 10
+  done
+}
 take_lock() {
   mkdir -p /tmp/claude-501
+  wait_docker
   if [ -f "$LAST_RELEASE" ]; then
     local since=$(( $(date +%s) - $(stat -f %m "$LAST_RELEASE" 2>/dev/null || stat -c %Y "$LAST_RELEASE") ))
     [ "$since" -lt 60 ] && sleep $(( 60 - since ))
@@ -27,6 +36,7 @@ take_lock() {
   done
   echo "$LOCK_OWNER since=$(date +%H:%M:%S) task=$1" > "$LOCK/owner"
   trap 'stop_server; release_lock' EXIT
+  wait_docker
 }
 release_lock() {
   if [ -f "$LOCK/owner" ] && grep -q "^$LOCK_OWNER " "$LOCK/owner"; then rm -rf "$LOCK"; touch "$LAST_RELEASE"; fi

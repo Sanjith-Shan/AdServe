@@ -179,12 +179,12 @@ File `results/jmh-hotpath.json`. One fork, 3 warm-up and 5 measured iterations, 
 
 | Benchmark | ns per call | error (99.9%) |
 |---|---|---|
-| fullDecision | 69,593 | 65,893 |
-| podDp | 7,275 | 39 |
-| podExact | 7,198 | 113 |
-| podGreedy | 1,682 | 29 |
-| targetingAllCampaigns | 174 | 1 |
-| tokenSign | 283 | 4 |
+| fullDecision | 16,527 | 92 |
+| podDp | 7,261 | 92 |
+| podExact | 6,954 | 73 |
+| podGreedy | 1,722 | 10 |
+| targetingAllCampaigns | 182 | 46 |
+| tokenSign | 280 | 2 |
 
 ## Milestone 1: end-to-end replay check
 
