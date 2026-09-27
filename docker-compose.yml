@@ -81,6 +81,24 @@ services:
       - ./deploy/grafana/dashboards:/var/lib/grafana/dashboards:ro
     mem_limit: 384m
 
+  # The server itself in a container, next to its dependencies (experiment 10). Normally the
+  # server runs on the host; this profile removes the host port forwarder from the Redis path.
+  adserve:
+    build: ./server
+    profiles: ["app"]
+    ports: ["28080:28080", "29100:29100"]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/adserve
+      ADSERVE_KAFKA_BOOTSTRAP: kafka:9092
+      ADSERVE_REDIS_URI: redis://redis:6379
+      ADSERVE_SEED_FILE: /data/campaigns.json
+      ADSERVE_FORECAST_FILE: /data/forecast.json
+      ADSERVE_REDIS_CAP_TIMEOUT_MS: ${CAP_TIMEOUT_MS:-20}
+    volumes:
+      - ./data/work:/data:ro
+    depends_on: [kafka, redis, postgres]
+    mem_limit: 2g
+
   # Only for the latency-injection experiment: Redis reached through a proxy that can add delay.
   toxiproxy:
     image: ghcr.io/shopify/toxiproxy:2.9.0
