@@ -1,0 +1,1431 @@
+[ {
+  "id" : "c1458-2abc9eaf",
+  "advertiserId" : "adv1458",
+  "name" : "Vertical e-commerce 1458 / 9eaf",
+  "category" : "retail",
+  "cpcBidMicros" : 749287,
+  "dailyBudgetMicros" : 12169760,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 2,
+    "perWeek" : 6
+  },
+  "targeting" : {
+    "geos" : [ "r238", "r15", "r79", "r124", "r3", "r1", "r183", "r134", "r146", "r80", "r201", "r216", "r94", "r106", "r276", "r275", "r333", "r40", "r164" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "2abc9eaf57d17a96195af3f63c45dc72",
+    "durationS" : 60,
+    "clickRate" : 5.687753380606193E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c1458-48f2e9ba",
+  "advertiserId" : "adv1458",
+  "name" : "Vertical e-commerce 1458 / e9ba",
+  "category" : "retail",
+  "cpcBidMicros" : 749287,
+  "dailyBudgetMicros" : 80417660,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 2,
+    "perWeek" : 6
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "48f2e9ba15708c0146bda5e1dd653caa",
+    "durationS" : 60,
+    "clickRate" : 0.0010565995971403013
+  } ],
+  "active" : true
+}, {
+  "id" : "c1458-61259943",
+  "advertiserId" : "adv1458",
+  "name" : "Vertical e-commerce 1458 / 9943",
+  "category" : "retail",
+  "cpcBidMicros" : 749287,
+  "dailyBudgetMicros" : 10170960,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 2,
+    "perWeek" : 6
+  },
+  "targeting" : {
+    "geos" : [ "r276", "r275", "r238", "r80", "r333", "r134", "r40", "r94", "r183", "r146", "r15", "r106", "r201", "r65", "r216", "r79", "r164", "r124", "r3", "r1" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "612599432d200b093719dd1f372f7a30",
+    "durationS" : 30,
+    "clickRate" : 4.316792216458128E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c1458-77819d3e",
+  "advertiserId" : "adv1458",
+  "name" : "Vertical e-commerce 1458 / 9d3e",
+  "category" : "retail",
+  "cpcBidMicros" : 749287,
+  "dailyBudgetMicros" : 64029670,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 2,
+    "perWeek" : 6
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "77819d3e0b3467fe5c7b16d68ad923a1",
+    "durationS" : 30,
+    "clickRate" : 7.916538550541208E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c1458-832b91d5",
+  "advertiserId" : "adv1458",
+  "name" : "Vertical e-commerce 1458 / 91d5",
+  "category" : "retail",
+  "cpcBidMicros" : 749287,
+  "dailyBudgetMicros" : 94736740,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "832b91d59d0cb5731431653204a76c0e",
+    "durationS" : 15,
+    "clickRate" : 0.0010718008606702492
+  } ],
+  "active" : true
+}, {
+  "id" : "c1458-a499988a",
+  "advertiserId" : "adv1458",
+  "name" : "Vertical e-commerce 1458 / 988a",
+  "category" : "retail",
+  "cpcBidMicros" : 749287,
+  "dailyBudgetMicros" : 3165660,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "a499988a822facd86dd0e8e4ffef8532",
+    "durationS" : 60,
+    "clickRate" : 0.001489467035883777
+  } ],
+  "active" : true
+}, {
+  "id" : "c1458-cb7c76e7",
+  "advertiserId" : "adv1458",
+  "name" : "Vertical e-commerce 1458 / 76e7",
+  "category" : "retail",
+  "cpcBidMicros" : 749287,
+  "dailyBudgetMicros" : 35726240,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 4,
+    "perWeek" : 12
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "cb7c76e7784031272e37af8e7e9b062c",
+    "durationS" : 30,
+    "clickRate" : 7.77159915471516E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c1458-fb5afa9d",
+  "advertiserId" : "adv1458",
+  "name" : "Vertical e-commerce 1458 / fa9d",
+  "category" : "retail",
+  "cpcBidMicros" : 749287,
+  "dailyBudgetMicros" : 2682140,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 2,
+    "perWeek" : 6
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "fb5afa9dba1274beaf3dad86baf97e89",
+    "durationS" : 30,
+    "clickRate" : 6.256347839709916E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3358-48c6405f",
+  "advertiserId" : "adv3358",
+  "name" : "Software 3358 / 405f",
+  "category" : "software",
+  "cpcBidMicros" : 865764,
+  "dailyBudgetMicros" : 1143760,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ "r276", "r275", "r238", "r80", "r333", "r134", "r40", "r94", "r55", "r183", "r146", "r15", "r106", "r201", "r216", "r79", "r164", "r124", "r3", "r1" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "48c6405fa5bdecc850ea6ef5e6cf4da5",
+    "durationS" : 60,
+    "clickRate" : 2.457121211975761E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3358-672fd361",
+  "advertiserId" : "adv3358",
+  "name" : "Software 3358 / d361",
+  "category" : "software",
+  "cpcBidMicros" : 865764,
+  "dailyBudgetMicros" : 1037360,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 2,
+    "perWeek" : 6
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "672fd361820651d4d99b47d7bf48d715",
+    "durationS" : 60,
+    "clickRate" : 4.5630841943843835E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3358-80446133",
+  "advertiserId" : "adv3358",
+  "name" : "Software 3358 / 6133",
+  "category" : "software",
+  "cpcBidMicros" : 865764,
+  "dailyBudgetMicros" : 15705930,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "80446133fda50388678789e3ebd9fdb1",
+    "durationS" : 30,
+    "clickRate" : 4.33833790721203E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3358-911b2d84",
+  "advertiserId" : "adv3358",
+  "name" : "Software 3358 / 2d84",
+  "category" : "software",
+  "cpcBidMicros" : 865764,
+  "dailyBudgetMicros" : 99623890,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "911b2d84826786018761e8c0b0a3a60c",
+    "durationS" : 60,
+    "clickRate" : 0.0018223523284295099
+  } ],
+  "active" : true
+}, {
+  "id" : "c3358-a10c31a8",
+  "advertiserId" : "adv3358",
+  "name" : "Software 3358 / 31a8",
+  "category" : "software",
+  "cpcBidMicros" : 865764,
+  "dailyBudgetMicros" : 49083040,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "a10c31a8ff5f42930b4c34035e523886",
+    "durationS" : 15,
+    "clickRate" : 8.609218423670327E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3358-cc9b344e",
+  "advertiserId" : "adv3358",
+  "name" : "Software 3358 / 344e",
+  "category" : "software",
+  "cpcBidMicros" : 865764,
+  "dailyBudgetMicros" : 44824500,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 4,
+    "perWeek" : 12
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "cc9b344e950b4f8c2b96537174a343b7",
+    "durationS" : 15,
+    "clickRate" : 8.998698408345566E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3358-dba98604",
+  "advertiserId" : "adv3358",
+  "name" : "Software 3358 / 8604",
+  "category" : "software",
+  "cpcBidMicros" : 865764,
+  "dailyBudgetMicros" : 6773770,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "dba9860463419dcd6c1b0152dfe7314c",
+    "durationS" : 30,
+    "clickRate" : 8.510842062392581E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3358-dc0998c1",
+  "advertiserId" : "adv3358",
+  "name" : "Software 3358 / 98c1",
+  "category" : "software",
+  "cpcBidMicros" : 865764,
+  "dailyBudgetMicros" : 12076070,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "dc0998c10f8f0b623b5d949e8272e4c7",
+    "durationS" : 30,
+    "clickRate" : 5.710943243473792E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3358-e1096a0a",
+  "advertiserId" : "adv3358",
+  "name" : "Software 3358 / 6a0a",
+  "category" : "software",
+  "cpcBidMicros" : 865764,
+  "dailyBudgetMicros" : 877230,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "e1096a0a4f557814cb226fa5ba2339b2",
+    "durationS" : 30,
+    "clickRate" : 8.018998601298079E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3358-e1b0b6fb",
+  "advertiserId" : "adv3358",
+  "name" : "Software 3358 / b6fb",
+  "category" : "software",
+  "cpcBidMicros" : 865764,
+  "dailyBudgetMicros" : 225430,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ "r65", "r308", "r79", "r124", "r3", "r183", "r146", "r374", "r80", "r201", "r216", "r94", "r106", "r276", "r275", "r333", "r40", "r55", "r164" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "e1b0b6fb39abeb138c0b1e37c5f6d777",
+    "durationS" : 30,
+    "clickRate" : 7.604629420224211E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3358-f1691b75",
+  "advertiserId" : "adv3358",
+  "name" : "Software 3358 / 1b75",
+  "category" : "software",
+  "cpcBidMicros" : 865764,
+  "dailyBudgetMicros" : 2029490,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 2,
+    "perWeek" : 6
+  },
+  "targeting" : {
+    "geos" : [ "r238", "r15", "r79", "r124", "r3", "r1", "r183", "r134", "r146", "r80", "r201", "r216", "r94", "r106", "r276", "r275", "r333", "r40", "r164" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "f1691b7571803d5a46adcb1f39f94d44",
+    "durationS" : 30,
+    "clickRate" : 5.647734538096555E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3386-011c1a3d",
+  "advertiserId" : "adv3386",
+  "name" : "International e-commerce 3386 / 1a3d",
+  "category" : "retail",
+  "cpcBidMicros" : 824485,
+  "dailyBudgetMicros" : 2691680,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "011c1a3d4d3f089a54f9b70a4c0a6eb3",
+    "durationS" : 15,
+    "clickRate" : 4.2220295447595145E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3386-2f88fc9c",
+  "advertiserId" : "adv3386",
+  "name" : "International e-commerce 3386 / fc9c",
+  "category" : "retail",
+  "cpcBidMicros" : 824485,
+  "dailyBudgetMicros" : 8469000,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ "r65", "r15", "r79", "r124", "r3", "r1", "r183", "r134", "r146", "r80", "r201", "r216", "r94", "r106", "r276", "r275", "r333", "r40", "r164" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "2f88fc9cf0141b5bbaf251cab07f4ce7",
+    "durationS" : 60,
+    "clickRate" : 6.501535199662719E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3386-44966cc8",
+  "advertiserId" : "adv3386",
+  "name" : "International e-commerce 3386 / 6cc8",
+  "category" : "retail",
+  "cpcBidMicros" : 824485,
+  "dailyBudgetMicros" : 127561350,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "44966cc8da1ed40c95d59e863c8c75f0",
+    "durationS" : 30,
+    "clickRate" : 0.001791820674286283
+  } ],
+  "active" : true
+}, {
+  "id" : "c3386-47905fee",
+  "advertiserId" : "adv3386",
+  "name" : "International e-commerce 3386 / 5fee",
+  "category" : "retail",
+  "cpcBidMicros" : 824485,
+  "dailyBudgetMicros" : 14213180,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "47905feeb59223468fb898b3c9ac024d",
+    "durationS" : 15,
+    "clickRate" : 8.788702977707423E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3386-6cdf8fdd",
+  "advertiserId" : "adv3386",
+  "name" : "International e-commerce 3386 / 8fdd",
+  "category" : "retail",
+  "cpcBidMicros" : 824485,
+  "dailyBudgetMicros" : 305240,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ "r276", "r374", "r238", "r80", "r333", "r40", "r94", "r344", "r55", "r183", "r146", "r15", "r394", "r393", "r216", "r79", "r164", "r124", "r3", "r1" ],
+    "devices" : [ ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "6cdf8fdd3e01122b09b5b411510a2385",
+    "durationS" : 30,
+    "clickRate" : 7.278611492387293E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3386-7097e421",
+  "advertiserId" : "adv3386",
+  "name" : "International e-commerce 3386 / e421",
+  "category" : "retail",
+  "cpcBidMicros" : 824485,
+  "dailyBudgetMicros" : 9933480,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ "r238", "r15", "r79", "r124", "r3", "r1", "r183", "r134", "r146", "r80", "r201", "r216", "r94", "r106", "r276", "r275", "r333", "r40", "r164" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "7097e4210dea4d69f07f0f5e4343529c",
+    "durationS" : 30,
+    "clickRate" : 5.285265791187724E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3386-82f125e3",
+  "advertiserId" : "adv3386",
+  "name" : "International e-commerce 3386 / 25e3",
+  "category" : "retail",
+  "cpcBidMicros" : 824485,
+  "dailyBudgetMicros" : 6893600,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 4,
+    "perWeek" : 12
+  },
+  "targeting" : {
+    "geos" : [ "r276", "r275", "r238", "r80", "r333", "r134", "r40", "r94", "r183", "r146", "r15", "r106", "r201", "r65", "r216", "r79", "r164", "r124", "r3", "r1" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "82f125e356439d73902ae85e2be96777",
+    "durationS" : 60,
+    "clickRate" : 3.4170743684432435E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3386-86c25435",
+  "advertiserId" : "adv3386",
+  "name" : "International e-commerce 3386 / 5435",
+  "category" : "retail",
+  "cpcBidMicros" : 824485,
+  "dailyBudgetMicros" : 90921370,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 2,
+    "perWeek" : 6
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "86c2543527c86a893d4d4f68810a0416",
+    "durationS" : 30,
+    "clickRate" : 8.09658745652308E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3386-b90c12ed",
+  "advertiserId" : "adv3386",
+  "name" : "International e-commerce 3386 / 12ed",
+  "category" : "retail",
+  "cpcBidMicros" : 824485,
+  "dailyBudgetMicros" : 46187580,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "b90c12ed2bd7950c6027bf9c6937c48a",
+    "durationS" : 15,
+    "clickRate" : 4.167595919069168E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3386-e87d7633",
+  "advertiserId" : "adv3386",
+  "name" : "International e-commerce 3386 / 7633",
+  "category" : "retail",
+  "cpcBidMicros" : 824485,
+  "dailyBudgetMicros" : 5260770,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ "r79", "r3", "r1", "r94", "r80", "r146", "r276", "r275", "r238", "r183", "r164", "r333", "r216", "r124", "r106" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "e87d7633d474589c2e2e3ba4eda53f6c",
+    "durationS" : 15,
+    "clickRate" : 0.0014124919254643272
+  } ],
+  "active" : true
+}, {
+  "id" : "c3386-ff5123fb",
+  "advertiserId" : "adv3386",
+  "name" : "International e-commerce 3386 / 23fb",
+  "category" : "retail",
+  "cpcBidMicros" : 824485,
+  "dailyBudgetMicros" : 17237530,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 4,
+    "perWeek" : 12
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "ff5123fb9333ca095034c62fdaaf51aa",
+    "durationS" : 60,
+    "clickRate" : 5.764550194785783E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3427-16ff5191",
+  "advertiserId" : "adv3427",
+  "name" : "Oil 3427 / 5191",
+  "category" : "auto",
+  "cpcBidMicros" : 951951,
+  "dailyBudgetMicros" : 448750,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "16ff51916f0c796ec72eefc633c4a8ed",
+    "durationS" : 15,
+    "clickRate" : 0.0015174204084524342
+  } ],
+  "active" : true
+}, {
+  "id" : "c3427-266f17dc",
+  "advertiserId" : "adv3427",
+  "name" : "Oil 3427 / 17dc",
+  "category" : "auto",
+  "cpcBidMicros" : 951951,
+  "dailyBudgetMicros" : 7768720,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 4,
+    "perWeek" : 12
+  },
+  "targeting" : {
+    "geos" : [ "r238", "r65", "r15", "r79", "r124", "r3", "r1", "r183", "r146", "r80", "r201", "r216", "r94", "r106", "r276", "r275", "r333", "r40", "r164" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "266f17dcc3a2280172a48fec62be7d02",
+    "durationS" : 15,
+    "clickRate" : 5.524634501085784E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3427-449a22cd",
+  "advertiserId" : "adv3427",
+  "name" : "Oil 3427 / 22cd",
+  "category" : "auto",
+  "cpcBidMicros" : 951951,
+  "dailyBudgetMicros" : 92100170,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "449a22cd91d9042eda3d3a1b89a22ea8",
+    "durationS" : 15,
+    "clickRate" : 0.0014177629912826646
+  } ],
+  "active" : true
+}, {
+  "id" : "c3427-54c6e256",
+  "advertiserId" : "adv3427",
+  "name" : "Oil 3427 / e256",
+  "category" : "auto",
+  "cpcBidMicros" : 951951,
+  "dailyBudgetMicros" : 2150370,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "54c6e2569e059cf336f7e7742b44c3ba",
+    "durationS" : 60,
+    "clickRate" : 5.194716114820198E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3427-6455a6f4",
+  "advertiserId" : "adv3427",
+  "name" : "Oil 3427 / a6f4",
+  "category" : "auto",
+  "cpcBidMicros" : 951951,
+  "dailyBudgetMicros" : 1186770,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ "r276", "r275", "r238", "r80", "r40", "r94", "r55", "r183", "r146", "r15", "r106", "r201", "r65", "r216", "r79", "r164", "r1", "r124", "r3", "r2" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "6455a6f45433aef94075f34dafd8d3bf",
+    "durationS" : 30,
+    "clickRate" : 3.760084288762759E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3427-6fb071c1",
+  "advertiserId" : "adv3427",
+  "name" : "Oil 3427 / 71c1",
+  "category" : "auto",
+  "cpcBidMicros" : 951951,
+  "dailyBudgetMicros" : 13787490,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "6fb071c11134e5078c1184ef1370a110",
+    "durationS" : 30,
+    "clickRate" : 6.137432004310741E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3427-7184c956",
+  "advertiserId" : "adv3427",
+  "name" : "Oil 3427 / c956",
+  "category" : "auto",
+  "cpcBidMicros" : 951951,
+  "dailyBudgetMicros" : 44995100,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "7184c9560e68e977187e67e45a4f3198",
+    "durationS" : 60,
+    "clickRate" : 5.723046591048155E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3427-798b2d49",
+  "advertiserId" : "adv3427",
+  "name" : "Oil 3427 / 2d49",
+  "category" : "auto",
+  "cpcBidMicros" : 951951,
+  "dailyBudgetMicros" : 9289630,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ "r238", "r15", "r79", "r124", "r3", "r1", "r183", "r134", "r146", "r80", "r201", "r216", "r94", "r106", "r276", "r275", "r333", "r40", "r164" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "798b2d49952d77f1eace9f23c210d0b5",
+    "durationS" : 30,
+    "clickRate" : 3.628151149744494E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3427-a4f763f7",
+  "advertiserId" : "adv3427",
+  "name" : "Oil 3427 / 63f7",
+  "category" : "auto",
+  "cpcBidMicros" : 951951,
+  "dailyBudgetMicros" : 6164770,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 4,
+    "perWeek" : 12
+  },
+  "targeting" : {
+    "geos" : [ "r276", "r275", "r238", "r80", "r333", "r134", "r40", "r94", "r183", "r146", "r15", "r106", "r201", "r65", "r216", "r79", "r164", "r124", "r3", "r1" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "a4f763f78ef3eedfe614263b94a8924e",
+    "durationS" : 30,
+    "clickRate" : 6.535032523556977E-5
+  } ],
+  "active" : true
+}, {
+  "id" : "c3427-bac72fe4",
+  "advertiserId" : "adv3427",
+  "name" : "Oil 3427 / 2fe4",
+  "category" : "auto",
+  "cpcBidMicros" : 951951,
+  "dailyBudgetMicros" : 487530,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ "r238", "r308", "r65", "r15", "r79", "r124", "r3", "r1", "r0", "r134", "r146", "r80", "r201", "r216", "r94", "r276", "r333", "r40", "r164" ],
+    "devices" : [ ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "bac72fe483c04a0ea2490539b4d06e6a",
+    "durationS" : 15,
+    "clickRate" : 0.0023142586581218834
+  } ],
+  "active" : true
+}, {
+  "id" : "c3427-c46090c8",
+  "advertiserId" : "adv3427",
+  "name" : "Oil 3427 / 90c8",
+  "category" : "auto",
+  "cpcBidMicros" : 951951,
+  "dailyBudgetMicros" : 97752610,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 2,
+    "perWeek" : 6
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "c46090c887c257b61ab1fa11baee91d8",
+    "durationS" : 15,
+    "clickRate" : 8.855284226507354E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3427-cd6f20e0",
+  "advertiserId" : "adv3427",
+  "name" : "Oil 3427 / 20e0",
+  "category" : "auto",
+  "cpcBidMicros" : 951951,
+  "dailyBudgetMicros" : 304020,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "cd6f20e0b2a699c352f2e55a7a2091fd",
+    "durationS" : 30,
+    "clickRate" : 0.0010401190518775636
+  } ],
+  "active" : true
+}, {
+  "id" : "c3427-f49541b4",
+  "advertiserId" : "adv3427",
+  "name" : "Oil 3427 / 41b4",
+  "category" : "auto",
+  "cpcBidMicros" : 951951,
+  "dailyBudgetMicros" : 14532660,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "f49541b4e0999d0c934ee3eea142a60e",
+    "durationS" : 15,
+    "clickRate" : 5.975100889084973E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3427-fa8f0532",
+  "advertiserId" : "adv3427",
+  "name" : "Oil 3427 / 0532",
+  "category" : "auto",
+  "cpcBidMicros" : 951951,
+  "dailyBudgetMicros" : 18220070,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ ],
+    "segmentsAny" : [ ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "fa8f0532dd5144b5fa748459e8d90b49",
+    "durationS" : 60,
+    "clickRate" : 6.533507184046824E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3476-0cd33fcb",
+  "advertiserId" : "adv3476",
+  "name" : "Tire 3476 / 3fcb",
+  "category" : "auto",
+  "cpcBidMicros" : 1182669,
+  "dailyBudgetMicros" : 66329760,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 2,
+    "perWeek" : 6
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ "t10052", "t13800", "t14273", "t10110", "t13042", "t10024", "t10031", "t13403", "t10076", "t10083", "t10075", "t10059", "t10057", "t10048" ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "0cd33fcb336655841d3e1441b915748d",
+    "durationS" : 30,
+    "clickRate" : 9.702757124313233E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3476-23485fcd",
+  "advertiserId" : "adv3476",
+  "name" : "Tire 3476 / 5fcd",
+  "category" : "auto",
+  "cpcBidMicros" : 1182669,
+  "dailyBudgetMicros" : 4792720,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ "r276", "r275", "r238", "r80", "r333", "r134", "r40", "r94", "r55", "r183", "r146", "r106", "r201", "r65", "r216", "r79", "r164", "r124", "r3", "r1" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ "t10052", "t13800", "t14273", "t10110", "t13042", "t10024", "t10031", "t13403", "t10076", "t10083", "t10075", "t10059", "t10057", "t10048" ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "23485fcd23122d755d38f8c89d46ca56",
+    "durationS" : 60,
+    "clickRate" : 7.007377282476926E-5
+  } ],
+  "active" : true
+}, {
+  "id" : "c3476-59f065a7",
+  "advertiserId" : "adv3476",
+  "name" : "Tire 3476 / 65a7",
+  "category" : "auto",
+  "cpcBidMicros" : 1182669,
+  "dailyBudgetMicros" : 26219650,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 2,
+    "perWeek" : 6
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ "t10052", "t13800", "t14273", "t10110", "t13042", "t10024", "t10031", "t13403", "t10076", "t10083", "t10075", "t10059", "t10057", "t10048" ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "59f065a795a663140e36eec106464524",
+    "durationS" : 15,
+    "clickRate" : 4.734171766190463E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3476-6b9331e0",
+  "advertiserId" : "adv3476",
+  "name" : "Tire 3476 / 31e0",
+  "category" : "auto",
+  "cpcBidMicros" : 1182669,
+  "dailyBudgetMicros" : 1416580,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ "t10052", "t13800", "t14273", "t10110", "t13042", "t10024", "t10031", "t13403", "t10076", "t10083", "t10075", "t10059", "t10057", "t10048" ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "6b9331e0f0dbbfef42c308333681f0a3",
+    "durationS" : 30,
+    "clickRate" : 0.0014842543270867502
+  } ],
+  "active" : true
+}, {
+  "id" : "c3476-80a77634",
+  "advertiserId" : "adv3476",
+  "name" : "Tire 3476 / 7634",
+  "category" : "auto",
+  "cpcBidMicros" : 1182669,
+  "dailyBudgetMicros" : 6446540,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ "t10052", "t13800", "t14273", "t10110", "t13042", "t10024", "t10031", "t13403", "t10076", "t10083", "t10075", "t10059", "t10057", "t10048" ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "80a776343079ed94d424f4607b35fd39",
+    "durationS" : 60,
+    "clickRate" : 3.574687362751297E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3476-8dff45ed",
+  "advertiserId" : "adv3476",
+  "name" : "Tire 3476 / 45ed",
+  "category" : "auto",
+  "cpcBidMicros" : 1182669,
+  "dailyBudgetMicros" : 8483830,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ "r238", "r15", "r79", "r124", "r3", "r1", "r183", "r134", "r146", "r80", "r201", "r216", "r94", "r106", "r276", "r275", "r333", "r40", "r164" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ "t10052", "t13800", "t14273", "t10110", "t13042", "t10024", "t10031", "t13403", "t10076", "t10083", "t10075", "t10059", "t10057", "t10048" ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "8dff45ed862a740986dbe688aafee7e5",
+    "durationS" : 30,
+    "clickRate" : 2.4537251064368846E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3476-bc27493a",
+  "advertiserId" : "adv3476",
+  "name" : "Tire 3476 / 493a",
+  "category" : "auto",
+  "cpcBidMicros" : 1182669,
+  "dailyBudgetMicros" : 1518580,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ "r238", "r15", "r79", "r124", "r3", "r2", "r1", "r183", "r134", "r146", "r80", "r201", "r216", "r94", "r276", "r275", "r333", "r40", "r164" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ "t10052", "t13800", "t14273", "t10110", "t13042", "t10024", "t10031", "t13403", "t10076", "t10083", "t10075", "t10059", "t10057", "t10048" ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "bc27493ad2351e2577bc8664172544f8",
+    "durationS" : 15,
+    "clickRate" : 2.3829697937556002E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3476-c938195f",
+  "advertiserId" : "adv3476",
+  "name" : "Tire 3476 / 195f",
+  "category" : "auto",
+  "cpcBidMicros" : 1182669,
+  "dailyBudgetMicros" : 13481980,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 2,
+    "perWeek" : 6
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ "t10052", "t13800", "t14273", "t10110", "t13042", "t10024", "t10031", "t13403", "t10076", "t10083", "t10075", "t10059", "t10057", "t10048" ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "c938195f9e404b4f38c7e71bf50263e5",
+    "durationS" : 30,
+    "clickRate" : 4.904639516612055E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3476-e049ebe2",
+  "advertiserId" : "adv3476",
+  "name" : "Tire 3476 / ebe2",
+  "category" : "auto",
+  "cpcBidMicros" : 1182669,
+  "dailyBudgetMicros" : 1897340,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 2,
+    "perWeek" : 6
+  },
+  "targeting" : {
+    "geos" : [ "r276", "r0", "r238", "r80", "r333", "r40", "r94", "r55", "r183", "r146", "r15", "r106", "r65", "r216", "r79", "r164", "r1", "r124", "r3", "r2" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ "t10052", "t13800", "t14273", "t10110", "t13042", "t10024", "t10031", "t13403", "t10076", "t10083", "t10075", "t10059", "t10057", "t10048" ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "e049ebe262e20bed5f9b975208db375b",
+    "durationS" : 30,
+    "clickRate" : 4.273477828229216E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3476-e1af0881",
+  "advertiserId" : "adv3476",
+  "name" : "Tire 3476 / 0881",
+  "category" : "auto",
+  "cpcBidMicros" : 1182669,
+  "dailyBudgetMicros" : 65763790,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 0,
+    "perWeek" : 0
+  },
+  "targeting" : {
+    "geos" : [ ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ "t10052", "t13800", "t14273", "t10110", "t13042", "t10024", "t10031", "t13403", "t10076", "t10083", "t10075", "t10059", "t10057", "t10048" ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "e1af08818a6cd6bbba118bb54a651961",
+    "durationS" : 15,
+    "clickRate" : 7.116885060542857E-4
+  } ],
+  "active" : true
+}, {
+  "id" : "c3476-f65c8bdb",
+  "advertiserId" : "adv3476",
+  "name" : "Tire 3476 / 8bdb",
+  "category" : "auto",
+  "cpcBidMicros" : 1182669,
+  "dailyBudgetMicros" : 18204270,
+  "flightStartMs" : 1370908800000,
+  "flightEndMs" : 1370995200000,
+  "pacer" : "THROTTLE",
+  "cap" : {
+    "perDay" : 3,
+    "perWeek" : 9
+  },
+  "targeting" : {
+    "geos" : [ "r276", "r275", "r238", "r80", "r333", "r134", "r40", "r94", "r183", "r146", "r15", "r106", "r201", "r65", "r216", "r79", "r164", "r124", "r3", "r1" ],
+    "devices" : [ "TV", "WEB" ],
+    "segmentsAny" : [ "t10052", "t13800", "t14273", "t10110", "t13042", "t10024", "t10031", "t13403", "t10076", "t10083", "t10075", "t10059", "t10057", "t10048" ],
+    "excludedGenres" : [ ]
+  },
+  "creatives" : [ {
+    "id" : "f65c8bdb41e9015970bac52baa813239",
+    "durationS" : 30,
+    "clickRate" : 3.1642096648379375E-4
+  } ],
+  "active" : true
+} ]

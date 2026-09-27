@@ -1,0 +1,57 @@
+server:
+  port: 28080
+
+spring:
+  application:
+    name: adserve
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: jdbc:postgresql://localhost:25432/adserve
+    username: adserve
+    password: adserve
+    hikari:
+      maximum-pool-size: 16
+      connection-timeout: 2000
+      initialization-fail-timeout: -1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    distribution:
+      percentiles-histogram:
+        adserve.decision: true
+      minimum-expected-value:
+        adserve.decision: 20us
+      maximum-expected-value:
+        adserve.decision: 5s
+
+adserve:
+  grpc-port: 29100
+  serving-region: US_EAST
+  kafka:
+    bootstrap: localhost:29092
+    topic: ad.responses
+    buffer-records: 200000
+  redis:
+    uri: redis://localhost:26379
+    cap-timeout-ms: 20
+  cap-mode: UNKNOWN_ALLOW
+  solver: greedy_swap
+  snapshot-refresh-ms: 2000
+  legacy-sync-write: false
+  use-request-clock: true
+  pacing-slot-ms: 60000
+  forecast-file: data/work/forecast.json
+  seed-file: ""
+  shedding:
+    enabled: false
+    capacity-per-second: 8000
+    burst-seconds: 0.25
+    live-reserve-fraction: 0.3
+    max-in-flight: 512
+    retry-after-ms: 2000
