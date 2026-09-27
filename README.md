@@ -45,6 +45,7 @@ is a range over repeats and comes with its file in `NUMBERS.md`.
 | Serving with Postgres stopped | 24,000 of 24,000 decided | sync-write baseline: 0 of 24,000 |
 | Budget pacing over one real day, 55 campaigns | Smart Pacing: 54 of 55 within 5% of budget, none overspent, none out of budget early | unpaced: 50 of 55 out of budget by about 07:51; without the per-node allowance, one budget overspent 7.99x |
 | Frequency caps with 5 to 20% duplicated beacons | 0 violations and 0.00% counter drift across 30,870 duplicated deliveries | naive INCR: counters 104 to 124% high; counting from beacons only: 153 to 317 violations |
+| Billing with 5 to 20% duplicated beacons (Flink job) | 15,111 impressions billed, each exactly once, 0 missing, across 11,370 duplicates; every campaign's total equals the beacon consumer's independent count | |
 | Pod value against the exact optimum, 5,000 real breaks | DP: 0.00% below the optimum on every break, p99 23 us | greedy: 8.35% below on average |
 | LIVE during 2x overload | LIVE p99 7.8 and 17.0 ms, 74% of VOD refused with a retry hint | no shedding: LIVE p99 40.9 and 60.2 ms |
 | CPU per decision (JMH) | 16.5 us: 55 targeting predicates in 182 ns, DP pod 7.3 us, token 280 ns | |
