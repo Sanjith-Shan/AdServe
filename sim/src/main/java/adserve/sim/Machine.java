@@ -12,20 +12,35 @@ public final class Machine {
 
     public static void describe(ObjectNode n) {
         ObjectNode m = n.putObject("machine");
-        m.put("cpu", sysctl("machdep.cpu.brand_string"));
+        String cpu = sysctl("machdep.cpu.brand_string");
+        m.put("cpu", cpu.startsWith("sysctl") || cpu.isEmpty() ? linuxCpu() : cpu);
         m.put("cores", Runtime.getRuntime().availableProcessors());
         String mem = sysctl("hw.memsize");
-        m.put("memory_gb", mem.isEmpty() ? 0 : Long.parseLong(mem) / (1L << 30));
+        m.put("memory_gb", mem.matches("\\d+") ? Long.parseLong(mem) / (1L << 30)
+                : ((com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean())
+                        .getTotalMemorySize() / (1L << 30));
         m.put("os", System.getProperty("os.name") + " " + System.getProperty("os.version"));
         m.put("java", System.getProperty("java.vm.name") + " " + System.getProperty("java.version"));
         m.put("jvm_args", String.join(" ", ManagementFactory.getRuntimeMXBean().getInputArguments()));
-        m.put("load_avg_1m_at_start", sysctl("vm.loadavg"));
+        m.put("load_avg_1m_at_start", loadAvg());
         m.put("low_power_mode", pmset("lowpowermode"));
         m.put("power_source", firstLine("pmset", "-g", "batt"));
     }
 
     public static String loadAvg() {
-        return sysctl("vm.loadavg");
+        String s = sysctl("vm.loadavg");
+        if (s.isEmpty() || s.startsWith("sysctl")) {
+            return String.format("%.2f", ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage());
+        }
+        return s;
+    }
+
+    static String linuxCpu() {
+        for (String l : lines("sh", "-c", "grep -m1 'model name' /proc/cpuinfo")) {
+            int i = l.indexOf(':');
+            if (i > 0) return l.substring(i + 1).trim();
+        }
+        return System.getProperty("os.arch");
     }
 
     static String pmset(String key) {

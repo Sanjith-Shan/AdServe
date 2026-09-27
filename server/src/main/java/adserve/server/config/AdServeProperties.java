@@ -26,7 +26,15 @@ public record AdServeProperties(
         String forecastFile,
         String seedFile,
         String executor,
+        Hollow hollow,
         Shedding shedding) {
+
+    /**
+     * Campaign snapshot delivery. {@code source} is "postgres" (each node polls the store) or
+     * "hollow" (each node consumes Hollow snapshots and deltas from {@code dir}); with
+     * {@code publish}, this node also runs the publisher that reads the store and produces them.
+     */
+    public record Hollow(String source, String dir, boolean publish) {}
 
     public record Kafka(String bootstrap, String topic, int bufferRecords) {}
 

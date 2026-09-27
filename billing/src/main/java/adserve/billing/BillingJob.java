@@ -16,7 +16,8 @@ import java.util.List;
  * topics. Its output is billing_events, one row per billable impression, counted once however
  * many times the device retried.
  *
- * <p>Environment: KAFKA_BOOTSTRAP, JDBC_URL, JDBC_USER, JDBC_PASSWORD, ADS_TOKEN_KEY.
+ * <p>Environment: KAFKA_BOOTSTRAP, JDBC_URL, JDBC_USER, JDBC_PASSWORD, ADS_TOKEN_KEY, PARALLELISM, and
+ * BILLING_START ("committed", the default, resumes the consumer group; "latest" skips history).
  * Run it standalone ({@code ./gradlew :billing:run}, an embedded mini-cluster) or submit the jar
  * to a Flink cluster.
  */
@@ -57,8 +58,9 @@ public final class BillingJob {
                 .setBootstrapServers(bootstrap)
                 .setTopics(topics)
                 .setGroupId(group)
-                .setStartingOffsets(OffsetsInitializer.committedOffsets(
-                        org.apache.kafka.clients.consumer.OffsetResetStrategy.EARLIEST))
+                .setStartingOffsets("latest".equals(env("BILLING_START", "committed"))
+                        ? OffsetsInitializer.latest()
+                        : OffsetsInitializer.committedOffsets(org.apache.kafka.clients.consumer.OffsetResetStrategy.EARLIEST))
                 .setValueOnlyDeserializer(new AbstractDeserializationSchema<>() {
                     @Override
                     public byte[] deserialize(byte[] message) {

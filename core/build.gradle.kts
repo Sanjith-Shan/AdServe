@@ -7,6 +7,7 @@ dependencies {
     api(project(":api"))
     api(libs.hdr)
     api(libs.jackson.databind)
+    api("com.netflix.hollow:hollow:7.15.2")
     implementation(libs.slf4j.api)
 
     testImplementation(platform(libs.junit.bom))

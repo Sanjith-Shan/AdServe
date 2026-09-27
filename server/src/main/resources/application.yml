@@ -50,6 +50,10 @@ adserve:
   forecast-file: data/work/forecast.json
   seed-file: ""
   executor: virtual
+  hollow:
+    source: postgres
+    dir: build/hollow-blobs
+    publish: false
   shedding:
     enabled: false
     capacity-per-second: 8000

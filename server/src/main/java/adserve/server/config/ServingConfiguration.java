@@ -77,8 +77,26 @@ public class ServingConfiguration {
         };
     }
 
+    /** Where the decision path gets campaigns: the Postgres-polling cache or a Hollow consumer. */
     @Bean
-    public DecisionEngine decisionEngine(AdServeProperties p, CampaignCache cache, RedisCounters counters,
+    public adserve.core.engine.SnapshotSource servingSnapshots(AdServeProperties p, CampaignCache cache) throws IOException {
+        if (p.hollow() == null || !"hollow".equals(p.hollow().source())) return cache::current;
+        java.nio.file.Path dir = java.nio.file.Path.of(p.hollow().dir());
+        java.nio.file.Files.createDirectories(dir);
+        return new adserve.core.hollow.CampaignHollow.Source(dir, true);
+    }
+
+    @Bean
+    public adserve.server.campaigns.HollowPublisherTask hollowPublisher(AdServeProperties p,
+                                                                       adserve.server.campaigns.CampaignRepository repo) throws IOException {
+        if (p.hollow() == null || !p.hollow().publish()) return null;
+        java.nio.file.Path dir = java.nio.file.Path.of(p.hollow().dir());
+        java.nio.file.Files.createDirectories(dir);
+        return new adserve.server.campaigns.HollowPublisherTask(new adserve.core.hollow.CampaignHollow.Publisher(dir), repo);
+    }
+
+    @Bean
+    public DecisionEngine decisionEngine(AdServeProperties p, adserve.core.engine.SnapshotSource servingSnapshots, RedisCounters counters,
                                          BudgetLedger ledger, PacingController pacing, KafkaDecisionLog log,
                                          DecisionMetrics metrics, ConcurrentHashMap<String, List<String>> viewerSegments) {
         EngineConfig cfg = EngineConfig.defaults()
@@ -88,7 +106,7 @@ public class ServingConfiguration {
                 .withSeparation(Separation.ADJACENT);
         Function<String, List<String>> lookup = v -> viewerSegments.getOrDefault(v, List.of());
         DecisionLog sink = log;
-        return new DecisionEngine(cfg, cache, counters, ledger, pacing, solver(p.solver()), TokenCodec.fromEnv(),
+        return new DecisionEngine(cfg, servingSnapshots, counters, ledger, pacing, solver(p.solver()), TokenCodec.fromEnv(),
                 sink, BrandSafety.defaults(), lookup, null, metrics);
     }
 
