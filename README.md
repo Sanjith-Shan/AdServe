@@ -78,6 +78,8 @@ duplicates, and prints what the billing table counted. Then open the console at
 `http://localhost:28080/console/`, GraphiQL at `http://localhost:28080/graphiql`, and Grafana at
 `http://localhost:23000`.
 
+![Delivery console after the demo](docs/img/console.jpg)
+
 Ask for one ad break yourself:
 
 ```
