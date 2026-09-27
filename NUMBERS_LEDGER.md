@@ -190,6 +190,16 @@ File `results/exp6_dependency.jsonl`. Machine: Apple M3 Pro, 12 cores, 18 GB, lo
 - `redis_plus_50ms`: Redis behind Toxiproxy with 50 ms added per response; cap check deadline 20 ms, cap mode unknown_allow
 - `redis_plus_5ms`: Redis behind Toxiproxy with 5 ms added per response; cap check deadline 20 ms, cap mode unknown_allow
 
+## Experiment 7: billing pipeline end to end, with audit
+
+File `results/exp7_billing.jsonl`. Machine: Apple M3 Pro, 12 cores, 18 GB, low power mode 1. AdServe, the beacon consumer and the Flink billing job running together; simulated players on the first 5,000 real ad breaks; beacons lost 1%, misrouted 2%.
+
+| Duplicate prob | Impressions served | With an IMPRESSION beacon | Beacons sent | Duplicates sent | Billing rows | Duplicate rows | Missing | Billed without beacon | Rerouted rows | Campaigns agreeing with Redis |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0.05 | 5,104 | 5,053 | 29,546 | 1,424 | 5,053 | 0 | 0 | 0 | 110 | 53 of 53 |
+| 0.10 | 5,034 | 4,978 | 30,819 | 3,031 | 4,978 | 0 | 0 | 0 | 110 | 55 of 55 |
+| 0.20 | 5,128 | 5,080 | 35,001 | 6,915 | 5,080 | 0 | 0 | 0 | 111 | 55 of 55 |
+
 ## Experiment 8: campaign snapshot over Hollow
 
 File `results/exp8_hollow.jsonl`. Machine: Apple M3 Pro, 12 cores, 18 GB, low power mode 1. filesystem blob store and announcement watcher on one machine; the watcher polls once a second.

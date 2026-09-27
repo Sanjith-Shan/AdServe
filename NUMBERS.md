@@ -94,6 +94,22 @@ and the real Lua scripts; beacons duplicated at 5, 10 and 20%, lost 1%, late 3%.
 - **0 invalid pods** from any solver, and property tests over thousands of random catalogues
   prove it (`core/src/test/.../PodInvariantProperties.java`).
 
+## Experiment 7: billing, end to end, with an audit
+
+`results/exp7_billing.jsonl`. AdServe, the beacon consumer and the Flink billing job running
+together; simulated players on the first 5,000 real ad breaks fire VAST beacons, duplicated at
+5, 10 and 20%, lost at 1%, sent to the wrong region at 2%.
+
+- **15,111 billed impressions across the three runs, each counted exactly once: 0 duplicate
+  rows, 0 impressions missing, 0 billed without a beacon, across 11,370 duplicated beacons.**
+  The billing table held exactly one row for every impression whose IMPRESSION beacon was sent
+  at least once (5,053, 4,978 and 5,080).
+- **Parallel-run audit:** every campaign's billed total equalled the beacon consumer's
+  independently counted confirmed spend in Redis (53 of 53, 55 of 55, 55 of 55 campaigns): two
+  pipelines, one answer.
+- 110 or 111 rows per run were flagged rerouted (beacon arrived in the other region), about 2%
+  of billed impressions, as injected.
+
 ## Experiment 8: the campaign snapshot over Hollow
 
 `results/exp8_hollow.jsonl`. For a 5,000-campaign catalogue, the full snapshot blob is
