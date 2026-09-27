@@ -36,7 +36,28 @@ with Hollow, a React delivery console, and Prometheus and Grafana.
 
 ## Results
 
-RESULTS_TABLE
+Measured on one Apple M3 Pro laptop with the load generator on the same machine; every figure
+is a range over repeats and comes with its file in `NUMBERS.md`.
+
+| Question | Result | Baseline |
+|---|---|---|
+| p99 when 8,000 ad breaks arrive within 2 s (offered peak about 7,700/s) | median 21.1 ms, worst 122.9 ms over 12 runs, 0 errors; best configuration 7.3 to 10.2 ms with every cap check answered | writing each decision to Postgres first: above 1 s in all 6 runs |
+| Serving with Postgres stopped | 24,000 of 24,000 decided | sync-write baseline: 0 of 24,000 |
+| Budget pacing over one real day, 55 campaigns | Smart Pacing: 54 of 55 within 5% of budget, none overspent, none out of budget early | unpaced: 50 of 55 out of budget by about 07:51; without the per-node allowance, one budget overspent 7.99x |
+| Frequency caps with 5 to 20% duplicated beacons | 0 violations and 0.00% counter drift across 30,870 duplicated deliveries | naive INCR: counters 104 to 124% high; counting from beacons only: 153 to 317 violations |
+| Pod value against the exact optimum, 5,000 real breaks | DP: 0.00% below the optimum on every break, p99 23 us | greedy: 8.35% below on average |
+| LIVE during 2x overload | LIVE p99 7.8 and 17.0 ms, 74% of VOD refused with a retry hint | no shedding: LIVE p99 40.9 and 60.2 ms |
+| CPU per decision (JMH) | 16.5 us: 55 targeting predicates in 182 ns, DP pod 7.3 us, token 280 ns | |
+| Campaign change reaching a serving node over Hollow, 5,000 campaigns | about 1.1 KB delta against a 1.18 MB snapshot, about 1 s (the watcher polls each second) | |
+
+![Burst p99 against the sync-write baseline](docs/img/burst_p99.svg)
+
+![Cumulative spend against plan](docs/img/pacing.svg)
+
+Two things to know before quoting any burst figure. Under a burst, a decision whose Redis read
+misses its 20 ms deadline is served without the cap check (in the configured cap mode); the count
+is recorded for every run and was 0 in the best configuration and up to 57% of decisions in the
+worst. And tail latency on this shared laptop varied up to 10 times between repeats.
 
 Every figure, the file it came from, the machine and the load are in `NUMBERS.md`. The design
 and every assumption the logs could not supply are in `DESIGN.md`; bugs found along the way, and

@@ -22,20 +22,33 @@ creatives from 5 advertisers. Viewers are simulated: nobody watched anything.
 
 ## Experiment 1: a live break, with and without a database write on the path
 
-`results/exp1_burst.jsonl`. N requests within 2 s on a gamma-shaped arrival curve (peak at
-0.4 s), all LIVE, three repeats, after a 30 s warm-up at 3,000/s.
+`results/exp1_burst.jsonl`, plus the same bursts inside `results/exp9_runtime.jsonl`. N requests
+within 2 s on a gamma-shaped arrival curve (peak at 0.4 s), all LIVE, three repeats per run,
+after a 30 s warm-up at 3,000/s. The comparison was run twice, once under generational ZGC
+(labels `adserve`, `legacy_sync_write`) and once under G1 (`*_g1`), with both sides on the same
+runtime each time.
 
-| Requests in 2 s (offered peak /s) | AdServe p99 over 3 repeats | AdServe errors | Sync-write baseline p99 | Baseline errors |
+| Requests in 2 s (offered peak /s) | AdServe p99, every run | AdServe errors | Sync-write baseline p99, every run | Baseline errors |
 |---|---|---|---|---|
-| 4,000 (3,834) | 7.7, 11.2, 14.3 ms | 0 | 104, 151, 368 ms | 0 |
-| 8,000 (7,668) | 10.3, 16.7, 20.7 ms | 0 | 1,324, 1,443, 1,986 ms | 0 to 0.5% |
-| 12,000 (11,501) | 22.3, 83.4, 103.9 ms | 0 | 2,025 to 2,041 ms | 1.8 to 2.6% |
-| 16,000 (15,335) | 60.6, 71.6, 184.6 ms | 0 | 2,080 to 2,114 ms | 20 to 24% |
+| 4,000 (3,834) | ZGC 7.7, 11.2, 14.3 · G1 3.0, 14.3, 4.3 ms | 0 | ZGC 104, 151, 368 · G1 60, 550, 8 ms | 0 |
+| 8,000 (7,668) | ZGC 20.7, 10.3, 16.7 · G1 122.9, 54.5, 56.5 ms | 0 | ZGC 1,324, 1,443, 1,986 · G1 1,036, 1,855, 1,108 ms | 0 to 0.5% |
+| 12,000 (11,501) | ZGC 103.9, 22.3, 83.4 · G1 78.8, 85.6, 84.4 ms | 0 | 1,875 to 2,041 ms | 0.9 to 2.6% |
+| 16,000 (15,335), ZGC only | 60.6, 184.6, 71.6 ms | 0 | 2,080 to 2,114 ms | 20 to 24% |
 
-The quotable line: **8,000 ad breaks arriving within 2 seconds, p99 at most 20.7 ms over three
-repeats with 0 errors, where writing each decision to Postgres first took p99 to 1.3 to 2.0 s.**
-Above about 8,000 per break the AdServe p99 varies widely between repeats on this machine; do
-not quote a capacity above that.
+The quotable line: **across 12 AdServe runs of 8,000 requests arriving within 2 seconds
+(this table's six, plus the six virtual-thread runs of experiment 9), the p99 had a median of
+21.1 ms and a worst of 122.9 ms, with 0 errors; writing each decision to Postgres first put the
+p99 above 1 second in all 6 of its runs.** The best configuration (G1, experiment 9) held
+7.3 to 10.2 ms with every frequency check answered.
+
+Two caveats that travel with every burst figure:
+
+1. **Missed counter deadlines.** A decision whose Redis read misses its 20 ms deadline is served
+   in the unknown_allow cap mode. At 8,000 per break, the G1 runs here missed 976, 2 and 3,344
+   of 8,000; experiment 9's G1 runs missed 0 (BUG_LOG bug 11, experiment 10). The count is in
+   the ledger for every run that recorded it (the first ZGC runs predate the counter).
+2. **Run-to-run spread.** The same cell varied up to 10 times between runs as the shared
+   laptop's load average moved between 4 and 17. Quote ranges, never a single best run.
 
 ## Experiment 2: pacing over one real day
 
