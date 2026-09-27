@@ -46,7 +46,7 @@ def burst():
         ax.annotate(f"baseline also failed up to {worst[1]*100:.0f}% of requests", (worst[0], 1400),
                     xytext=(-8, 0), textcoords="offset points", ha="right", va="center", color=MUTED, fontsize=8.5)
     ax.legend(frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=2, fontsize=9, labelcolor=INK)
-    fig.text(0.01, 0.01, "One Apple M3 Pro laptop, load generator on the same machine. Real ad-break contexts from iPinYou 2013-06-11.",
+    fig.text(0.01, 0.01, "One Apple M3 Pro laptop (generational ZGC run), load generator on the same machine. Real ad-break contexts from iPinYou 2013-06-11.",
              color=MUTED, fontsize=7.5)
     fig.tight_layout(rect=(0, 0.04, 1, 1))
     fig.savefig("docs/img/burst_p99.svg")
