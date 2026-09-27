@@ -23,3 +23,8 @@ given; the numbers in NUMBERS.md never come from this folder.
   `fullDecision` is valid and identical in method to the rerun. `fullDecision` (69.6 us +/- 65.9)
   gave every iteration a new viewer id against an in-memory counter map, so the map grew by
   millions of keys during the run and the figure measured the map, not the decision path.
+- `exp7_billing_run2_reroute_flag_wrong.jsonl`: the second billing run (job running). Every
+  deduplication figure in it is valid (0 duplicate rows, 0 missing, 0 billed without a beacon,
+  53 and 54 of 54 campaigns agreeing with Redis, at 5, 10 and 20% duplicates), but the players
+  sent beacons to the log row's region instead of the serving region, so about half the rows were
+  flagged rerouted (BUG_LOG bug 12). Rerun with the fix.
