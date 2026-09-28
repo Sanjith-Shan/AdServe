@@ -17,7 +17,8 @@ ROOT='C:\SullaPortal\projects\adserve'
 TMP=$(mktemp -d /tmp/claude-501/adserve-minipc.XXXXXX)
 trap 'rm -rf "$TMP"' EXIT
 
-./gradlew -q :sim:installDist
+# SKIP_BUILD=1 ships the current install dir as is (e.g. while another project times the laptop).
+[ -n "${SKIP_BUILD:-}" ] || ./gradlew -q :sim:installDist
 tar -czf "$TMP/dist.tgz" -C sim/build/install sim
 minipc push "$TMP/dist.tgz" "C:/SullaPortal/projects/adserve/dist-$JOB.tgz" >/dev/null
 
