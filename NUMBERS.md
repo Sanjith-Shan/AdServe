@@ -20,6 +20,18 @@ creatives from 5 advertisers. Viewers are simulated: nobody watched anything.
 - **10,000** real-log ad breaks decided over gRPC, and every one of the **9,947** distinct request
   ids (the log repeats 53 bid ids) found on `ad.responses`. `results/m1_replay.jsonl`, last row.
 
+## The auction, M0: bids and reserve from the replay
+
+`results/m0_bids.md` (table) and `results/m0_bids.jsonl` (one row per campaign). Replay day
+2013-06-11. Money is micros of the log's currency (CNY) per impression, never dollars.
+
+- **All 55 campaigns bid from their own median winning price** on the replay day (none needed the
+  log-normal fallback, fitted to every positive paying price: mu 6.4049, sigma 0.8166, median 605
+  micros). A 30 s spot at a campaign's own click rate bids exactly that median.
+- **Reserve: 50 micros per impression per slot**, the day's median slot floor price. 32.4% of
+  slots had no floor, 0.37% of impressions paid below 50, and 0 of 55 campaigns bid below it.
+- Paying prices: p10 200, p50 700, p90 1,660, p99 2,600 micros per impression.
+
 ## Experiment 1: a live break, with and without a database write on the path
 
 `results/exp1_burst.jsonl`, plus the same bursts inside `results/exp9_runtime.jsonl`. N requests
@@ -173,6 +185,34 @@ fetches are in flight, so they miss the deadline less but queue in the pool, and
 widely. At 12,000 every configuration skipped thousands of checks: that is past this laptop's
 capacity with caps enforced.
 
+## Experiment 13: does the auction cost latency?
+
+`results/exp13_latency.jsonl`. The experiment 1 burst (8,000 LIVE requests within 2 s, 30 s
+warm-up at 3,000/s, G1, virtual threads) against three servers, interleaved in two rounds of
+three repeats each so the laptop's load drifted over all of them alike: this server with
+second-price pricing, the same server with first-price pricing, and the server as of commit
+`d208783`, before the auction existed. All three seed the same campaigns (bids from the replay).
+**The laptop was busy with another project's model training throughout: the 1-minute load
+average before the bursts ranged from 35 to 73.** Read this table as "no difference the noise
+can show", not as capacity.
+
+| Server | p99 per burst, sorted | Median p99 | Errors | Counter deadline missed (of 8,000) | Ads per pod |
+|---|---|---|---|---|---|
+| Auction, second price | 63.2, 81.6, 100.7, 119.6, 144.5, 185.9 ms | 110.2 ms | 0 of 48,000 | 282 to 2,518 | 1.67 to 1.69 |
+| Auction, first price | 42.8, 69.6, 79.3, 109.1, 119.7, 174.7 ms | 94.2 ms | 0 of 48,000 | 364 to 3,313 | 1.46 to 1.48 |
+| Before the auction | 97.5, 103.9, 107.8, 121.0, 199.4, 923.6 ms | 114.4 ms | 0 of 48,000 | 125 to 3,429 | 1.44 to 1.48 |
+
+- **Every leg served all 48,000 requests with 0 errors, and the three p99 ranges overlap
+  almost completely.** Under this load the auction and its pricing step add nothing the burst
+  can resolve; the CPU cost itself is in the JMH section below.
+- Second-price pods held more ads (1.67 to 1.69 against 1.44 to 1.48). Winners are charged the
+  cleared price instead of the bid, so budgets and the pacers' spend drain slower through the
+  warm-up and burst and more campaigns stay eligible. Pod assembly itself is identical under
+  both rules.
+- These p99s are several times experiment 9's 7.3 to 10.2 ms for the same burst on a quieter
+  laptop, and the missed-deadline counts are high in every leg (BUG_LOG bug 11): the load, not
+  the code, sets them.
+
 ## JMH: the decision path's CPU cost
 
 `results/jmh-hotpath.json`, average time per call, one fork, 5 measured iterations.
@@ -185,6 +225,22 @@ capacity with caps enforced.
 | Exact branch and bound, same breaks | 7.0 us |
 | Greedy | 1.7 us |
 | Sign one impression token (HMAC-SHA256) | 280 ns |
+
+### JMH with the auction
+
+`results/jmh-auction.json`, same benchmark class, one fork, 5 measured iterations, run while the
+laptop's load average was about 35 (another project's training), so the error bars are wide:
+
+| What | Time |
+|---|---|
+| Second-price pricing of one assembled pod (every slot against its best legal rival) | **1.1 us** (+- 0.4) |
+| One whole decision, second price | 22.6 us (+- 7.4) |
+| One whole decision, first price (same scoring and assembly, no rival search) | 19.3 us (+- 4.0) |
+| DP pod solve | 9.5 us (+- 5.0) |
+| All 55 targeting predicates | 184 ns (+- 21) |
+
+Pricing is about 1 us against a DP solve of 7 to 10 us: a small fraction of the decision, and
+the whole-decision gap between the two rules is inside the noise of this run.
 
 ## Experiment 10: the counter deadline, and where the server sits
 

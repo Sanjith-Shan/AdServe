@@ -1,0 +1,452 @@
+[
+    {
+        "jmhVersion" : "1.36",
+        "benchmark" : "adserve.core.HotPathBenchmark.auctionPriceSecond",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/opt/homebrew/Cellar/openjdk@21/21.0.12.1/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=/Users/sanjithshanmugavel/Documents/AdServe/core/build/tmp/jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "21.0.12.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12.1",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 1099.0018100820523,
+            "scoreError" : 407.36515721584414,
+            "scoreConfidence" : [
+                691.6366528662081,
+                1506.3669672978965
+            ],
+            "scorePercentiles" : {
+                "0.0" : 984.9693985811493,
+                "50.0" : 1085.0444125348938,
+                "90.0" : 1238.6434866984816,
+                "95.0" : 1238.6434866984816,
+                "99.0" : 1238.6434866984816,
+                "99.9" : 1238.6434866984816,
+                "99.99" : 1238.6434866984816,
+                "99.999" : 1238.6434866984816,
+                "99.9999" : 1238.6434866984816,
+                "100.0" : 1238.6434866984816
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    1085.0444125348938,
+                    1170.6401663742101,
+                    1238.6434866984816,
+                    984.9693985811493,
+                    1015.7115862215272
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.36",
+        "benchmark" : "adserve.core.HotPathBenchmark.fullDecision",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/opt/homebrew/Cellar/openjdk@21/21.0.12.1/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=/Users/sanjithshanmugavel/Documents/AdServe/core/build/tmp/jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "21.0.12.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12.1",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 22624.929421003653,
+            "scoreError" : 7372.434984232958,
+            "scoreConfidence" : [
+                15252.494436770696,
+                29997.36440523661
+            ],
+            "scorePercentiles" : {
+                "0.0" : 20787.841345045395,
+                "50.0" : 21873.431186482183,
+                "90.0" : 25802.498934446532,
+                "95.0" : 25802.498934446532,
+                "99.0" : 25802.498934446532,
+                "99.9" : 25802.498934446532,
+                "99.99" : 25802.498934446532,
+                "99.999" : 25802.498934446532,
+                "99.9999" : 25802.498934446532,
+                "100.0" : 25802.498934446532
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    21854.675023920518,
+                    20787.841345045395,
+                    22806.200615123653,
+                    21873.431186482183,
+                    25802.498934446532
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.36",
+        "benchmark" : "adserve.core.HotPathBenchmark.fullDecisionFirstPrice",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/opt/homebrew/Cellar/openjdk@21/21.0.12.1/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=/Users/sanjithshanmugavel/Documents/AdServe/core/build/tmp/jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "21.0.12.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12.1",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 19315.815545987207,
+            "scoreError" : 3967.1888602521412,
+            "scoreConfidence" : [
+                15348.626685735066,
+                23283.00440623935
+            ],
+            "scorePercentiles" : {
+                "0.0" : 18208.673761666974,
+                "50.0" : 19155.76278863981,
+                "90.0" : 20972.85486589139,
+                "95.0" : 20972.85486589139,
+                "99.0" : 20972.85486589139,
+                "99.9" : 20972.85486589139,
+                "99.99" : 20972.85486589139,
+                "99.999" : 20972.85486589139,
+                "99.9999" : 20972.85486589139,
+                "100.0" : 20972.85486589139
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    19155.76278863981,
+                    19414.70125557424,
+                    20972.85486589139,
+                    18827.08505816361,
+                    18208.673761666974
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.36",
+        "benchmark" : "adserve.core.HotPathBenchmark.podDp",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/opt/homebrew/Cellar/openjdk@21/21.0.12.1/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=/Users/sanjithshanmugavel/Documents/AdServe/core/build/tmp/jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "21.0.12.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12.1",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 9507.721939087409,
+            "scoreError" : 5021.863619520586,
+            "scoreConfidence" : [
+                4485.8583195668225,
+                14529.585558607996
+            ],
+            "scorePercentiles" : {
+                "0.0" : 8368.585226350871,
+                "50.0" : 9373.662425156714,
+                "90.0" : 11700.279384238382,
+                "95.0" : 11700.279384238382,
+                "99.0" : 11700.279384238382,
+                "99.9" : 11700.279384238382,
+                "99.99" : 11700.279384238382,
+                "99.999" : 11700.279384238382,
+                "99.9999" : 11700.279384238382,
+                "100.0" : 11700.279384238382
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    9407.088240959554,
+                    9373.662425156714,
+                    8368.585226350871,
+                    11700.279384238382,
+                    8688.99441873152
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.36",
+        "benchmark" : "adserve.core.HotPathBenchmark.podExact",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/opt/homebrew/Cellar/openjdk@21/21.0.12.1/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=/Users/sanjithshanmugavel/Documents/AdServe/core/build/tmp/jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "21.0.12.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12.1",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 10653.177664629335,
+            "scoreError" : 6834.232249500717,
+            "scoreConfidence" : [
+                3818.9454151286172,
+                17487.409914130054
+            ],
+            "scorePercentiles" : {
+                "0.0" : 8332.321892758773,
+                "50.0" : 10177.4060948917,
+                "90.0" : 12633.464024414101,
+                "95.0" : 12633.464024414101,
+                "99.0" : 12633.464024414101,
+                "99.9" : 12633.464024414101,
+                "99.99" : 12633.464024414101,
+                "99.999" : 12633.464024414101,
+                "99.9999" : 12633.464024414101,
+                "100.0" : 12633.464024414101
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    8332.321892758773,
+                    9892.461269652347,
+                    10177.4060948917,
+                    12230.235041429747,
+                    12633.464024414101
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.36",
+        "benchmark" : "adserve.core.HotPathBenchmark.podGreedy",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/opt/homebrew/Cellar/openjdk@21/21.0.12.1/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=/Users/sanjithshanmugavel/Documents/AdServe/core/build/tmp/jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "21.0.12.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12.1",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 3032.9711217197023,
+            "scoreError" : 957.6042934951572,
+            "scoreConfidence" : [
+                2075.3668282245453,
+                3990.5754152148593
+            ],
+            "scorePercentiles" : {
+                "0.0" : 2728.2549562160934,
+                "50.0" : 3022.540733446183,
+                "90.0" : 3416.567087510197,
+                "95.0" : 3416.567087510197,
+                "99.0" : 3416.567087510197,
+                "99.9" : 3416.567087510197,
+                "99.99" : 3416.567087510197,
+                "99.999" : 3416.567087510197,
+                "99.9999" : 3416.567087510197,
+                "100.0" : 3416.567087510197
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    3416.567087510197,
+                    2728.2549562160934,
+                    3048.4013529483827,
+                    2949.0914784776555,
+                    3022.540733446183
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.36",
+        "benchmark" : "adserve.core.HotPathBenchmark.targetingAllCampaigns",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/opt/homebrew/Cellar/openjdk@21/21.0.12.1/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=/Users/sanjithshanmugavel/Documents/AdServe/core/build/tmp/jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "21.0.12.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12.1",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 183.7355096297101,
+            "scoreError" : 21.239440791069708,
+            "scoreConfidence" : [
+                162.49606883864038,
+                204.9749504207798
+            ],
+            "scorePercentiles" : {
+                "0.0" : 177.3722747013684,
+                "50.0" : 183.5499753182285,
+                "90.0" : 191.517311533579,
+                "95.0" : 191.517311533579,
+                "99.0" : 191.517311533579,
+                "99.9" : 191.517311533579,
+                "99.99" : 191.517311533579,
+                "99.999" : 191.517311533579,
+                "99.9999" : 191.517311533579,
+                "100.0" : 191.517311533579
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    191.517311533579,
+                    183.5499753182285,
+                    186.26979219675152,
+                    179.96819439862313,
+                    177.3722747013684
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.36",
+        "benchmark" : "adserve.core.HotPathBenchmark.tokenSign",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/opt/homebrew/Cellar/openjdk@21/21.0.12.1/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=/Users/sanjithshanmugavel/Documents/AdServe/core/build/tmp/jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "21.0.12.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12.1",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 339.95396645283864,
+            "scoreError" : 98.63023594468905,
+            "scoreConfidence" : [
+                241.3237305081496,
+                438.5842023975277
+            ],
+            "scorePercentiles" : {
+                "0.0" : 314.0632996051249,
+                "50.0" : 331.2258195807673,
+                "90.0" : 381.2867119531834,
+                "95.0" : 381.2867119531834,
+                "99.0" : 381.2867119531834,
+                "99.9" : 381.2867119531834,
+                "99.99" : 381.2867119531834,
+                "99.999" : 381.2867119531834,
+                "99.9999" : 381.2867119531834,
+                "100.0" : 381.2867119531834
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    328.0279245644824,
+                    314.0632996051249,
+                    345.16607656063525,
+                    331.2258195807673,
+                    381.2867119531834
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    }
+]
+
+

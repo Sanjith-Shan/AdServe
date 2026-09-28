@@ -13,7 +13,8 @@ public final class Machine {
     public static void describe(ObjectNode n) {
         ObjectNode m = n.putObject("machine");
         String cpu = sysctl("machdep.cpu.brand_string");
-        m.put("cpu", cpu.startsWith("sysctl") || cpu.isEmpty() ? linuxCpu() : cpu);
+        m.put("cpu", cpu.startsWith("sysctl") || cpu.isEmpty() ? otherCpu() : cpu);
+        m.put("host", hostName());
         m.put("cores", Runtime.getRuntime().availableProcessors());
         String mem = sysctl("hw.memsize");
         m.put("memory_gb", mem.matches("\\d+") ? Long.parseLong(mem) / (1L << 30)
@@ -30,9 +31,35 @@ public final class Machine {
     public static String loadAvg() {
         String s = sysctl("vm.loadavg");
         if (s.isEmpty() || s.startsWith("sysctl")) {
-            return String.format("%.2f", ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage());
+            double la = ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage();
+            if (la < 0) {
+                // Windows has no load average: report CPU utilisation instead, labelled as such.
+                double cpu = ((com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean())
+                        .getCpuLoad();
+                return String.format("cpu_util %.2f", cpu);
+            }
+            return String.format("%.2f", la);
         }
         return s;
+    }
+
+    static String hostName() {
+        String h = System.getenv("COMPUTERNAME");
+        if (h != null && !h.isEmpty()) return h;
+        return firstLine("hostname");
+    }
+
+    /** Linux from /proc/cpuinfo, Windows from the registry's processor name. */
+    static String otherCpu() {
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            for (String l : lines("reg", "query", "HKLM\\HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
+                    "/v", "ProcessorNameString")) {
+                int i = l.indexOf("REG_SZ");
+                if (i > 0) return l.substring(i + 6).trim();
+            }
+            return System.getProperty("os.arch");
+        }
+        return linuxCpu();
     }
 
     static String linuxCpu() {
