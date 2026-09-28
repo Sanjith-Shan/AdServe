@@ -74,6 +74,19 @@ public final class RedisCounters implements CapStore, AutoCloseable {
             return 0
             """;
 
+    /**
+     * Per-creative quality counters for the auction's optional skip-rate term. KEYS[1] event key,
+     * KEYS[2] the creative's hash; ARGV[1] TTL, ARGV[2] field ("imp" or "complete").
+     */
+    static final String QUALITY_ONCE = """
+            if redis.call('SET', KEYS[1], '1', 'NX', 'EX', ARGV[1]) then
+              redis.call('HINCRBY', KEYS[2], ARGV[2], 1)
+              redis.call('EXPIRE', KEYS[2], ARGV[1])
+              return 1
+            end
+            return 0
+            """;
+
     private final RedisClient client;
     private final java.util.concurrent.atomic.AtomicReferenceArray<StatefulRedisConnection<String, String>> conns;
     private final java.util.concurrent.atomic.AtomicReferenceArray<RedisAsyncCommands<String, String>> cmds;
@@ -84,6 +97,7 @@ public final class RedisCounters implements CapStore, AutoCloseable {
     private final String countSha;
     private final String spendSha;
     private final String podSha;
+    private final String qualitySha;
     private final LongAdder writeErrors = new LongAdder();
 
     public RedisCounters(String uri, long timeoutMs, boolean idempotent) {
@@ -108,6 +122,7 @@ public final class RedisCounters implements CapStore, AutoCloseable {
         this.countSha = sha1(COUNT_ONCE);
         this.spendSha = sha1(SPEND_ONCE);
         this.podSha = sha1(COUNT_POD_ONCE);
+        this.qualitySha = sha1(QUALITY_ONCE);
         // Connect now if Redis is up; if it is not, start anyway and connect on first use. A
         // serving node must be able to start (and serve, in its cap mode) while Redis is down.
         ensureConnected();
@@ -143,6 +158,7 @@ public final class RedisCounters implements CapStore, AutoCloseable {
             c.scriptLoad(COUNT_ONCE).get(2, TimeUnit.SECONDS);
             c.scriptLoad(SPEND_ONCE).get(2, TimeUnit.SECONDS);
             c.scriptLoad(COUNT_POD_ONCE).get(2, TimeUnit.SECONDS);
+            c.scriptLoad(QUALITY_ONCE).get(2, TimeUnit.SECONDS);
         } catch (Exception e) {
             // Redis unreachable right now; evalsha will fall back to eval when it returns.
         }
@@ -301,6 +317,37 @@ public final class RedisCounters implements CapStore, AutoCloseable {
         }
         long[] out = new long[campaignIds.size()];
         for (int i = 0; i < out.length; i++) out[i] = parse(v.get(i));
+        return out;
+    }
+
+    static final long QUALITY_TTL_S = 7 * 86_400L;
+
+    public static String qualityKey(String creativeId) {
+        return "cq:{" + creativeId + "}";
+    }
+
+    /** Counts one IMPRESSION ("imp") or COMPLETE ("complete") of a creative, once per event id. */
+    public RedisFuture<Long> recordCreativeEventAsync(String creativeId, String field, String eventId) {
+        return evalScript(qualitySha, QUALITY_ONCE, ScriptOutputType.INTEGER,
+                new String[]{"qe:" + eventId, qualityKey(creativeId)},
+                String.valueOf(QUALITY_TTL_S), field);
+    }
+
+    /** {impressions, completes} per creative; off the decision path (quality sync). */
+    public long[][] creativeQuality(List<String> creativeIds) {
+        long[][] out = new long[creativeIds.size()][2];
+        RedisAsyncCommands<String, String> c = pick();
+        List<RedisFuture<List<KeyValue<String, String>>>> pending = new ArrayList<>(creativeIds.size());
+        for (String id : creativeIds) pending.add(c.hmget(qualityKey(id), "imp", "complete"));
+        try {
+            for (int i = 0; i < out.length; i++) {
+                List<KeyValue<String, String>> v = pending.get(i).get(1, TimeUnit.SECONDS);
+                out[i][0] = parse(v.get(0));
+                out[i][1] = parse(v.get(1));
+            }
+        } catch (Exception e) {
+            throw new CapStoreUnavailableException("quality read failed", e);
+        }
         return out;
     }
 

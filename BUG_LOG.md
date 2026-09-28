@@ -135,3 +135,15 @@ last.
   region by construction. The deduplication counts were unaffected; the reroute column was noise.
 - **Fix:** a player sends beacons to the region in the response (`serving_region`), and a
   misroute sends them to the other one. The run was repeated; the first rows are archived.
+
+## 13. Every campaign file write reordered the targeting lists
+
+- **Found by:** the auction's `sim derive-bids`, whose first run rewrote the committed sample
+  catalogue and changed every `geos` list in the diff when only bids should have moved.
+- **What happened:** `TargetingSpec` copied its sets with `Set.copyOf`, whose iteration order is
+  randomised per JVM run, so `CampaignFiles.write` put the same campaign's regions in a different
+  order every time. Nothing served differently (targeting compiles sets to bitsets), but no
+  catalogue written by the tools was reproducible byte for byte, and a real change was hidden in
+  a noisy diff.
+- **Fix:** the spec's sets are sorted (`TreeSet`, `EnumSet`), and `CampaignFilesTest` writes the
+  sample twice and requires identical bytes. `derive-bids` edits only the bid field in the JSON.

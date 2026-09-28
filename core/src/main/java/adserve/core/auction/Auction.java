@@ -4,6 +4,7 @@ import adserve.core.pod.Arrangement;
 import adserve.core.pod.Item;
 import adserve.core.pod.Pod;
 import adserve.core.pod.PodRules;
+import adserve.core.pod.PodSolver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,5 +102,30 @@ public final class Auction {
             if (Arrangement.arrangeable(swapped, rules.separation())) best = c;
         }
         return best;
+    }
+
+    /**
+     * The exact alternative the swap approximates, for measurement only: each winner's critical
+     * value, the least bid at which it still makes the best pod. With the pod optimal for
+     * {@code solver}, a winner's slot is kept while {@code score + (V - score) >= OPT(without its
+     * advertiser)}, where V is the pod's value, so the critical score is
+     * {@code OPT_without - (V - score)}. It costs one extra solve per winner, which is why the
+     * serving path does not use it. Returns one price per slot, clamped like {@link #price}.
+     */
+    public static long[] criticalPrices(Pod pod, List<Item> candidates, long[] bidValueByRef, PodRules rules,
+                                        PodSolver solver, AuctionConfig cfg) {
+        List<Item> slots = pod.items();
+        long[] out = new long[slots.size()];
+        for (int s = 0; s < slots.size(); s++) {
+            Item w = slots.get(s);
+            long bid = bidValueByRef[w.ref()];
+            List<Item> without = new ArrayList<>(candidates.size());
+            for (Item c : candidates) if (c.advertiser() != w.advertiser()) without.add(c);
+            long opt = without.isEmpty() ? 0 : solver.solve(without, rules).value();
+            long criticalScore = Math.max(0, opt - (pod.value() - w.value()));
+            long p = w.value() <= 0 ? bid : (long) Math.ceil((double) criticalScore * bid / w.value());
+            out[s] = Math.min(bid, Math.max(cfg.reserveMicros(), p));
+        }
+        return out;
     }
 }

@@ -104,7 +104,8 @@ public class ServingConfiguration {
                 .withCapMode(p.capMode())
                 .withServingRegion(p.servingRegion())
                 .withRequestClock(p.useRequestClock())
-                .withSeparation(Separation.ADJACENT);
+                .withSeparation(Separation.ADJACENT)
+                .withAuction(p.auction().config());
         Function<String, List<String>> lookup = v -> viewerSegments.getOrDefault(v, List.of());
         DecisionLog sink = log;
         DecisionEngine engine = new DecisionEngine(cfg, servingSnapshots, counters, ledger, pacing, solver(p.solver()), TokenCodec.fromEnv(),
@@ -119,6 +120,12 @@ public class ServingConfiguration {
     @Bean
     public Admission admission(AdServeProperties p, MeterRegistry registry) {
         return new Admission(p.shedding(), registry);
+    }
+
+    @Bean
+    public adserve.server.budget.QualitySync qualitySync(AdServeProperties p, RedisCounters counters, DecisionEngine engine,
+                                                          CampaignCache cache) {
+        return new adserve.server.budget.QualitySync(counters, engine, cache, p.auction());
     }
 
     @Bean

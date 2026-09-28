@@ -12,6 +12,7 @@ public final class Main {
         String[] rest = Arrays.copyOfRange(args, 1, args.length);
         switch (args[0]) {
             case "load-ipinyou" -> adserve.sim.data.IpinyouLoader.main(rest);
+            case "derive-bids" -> adserve.sim.data.DeriveBids.main(rest);
             case "redis-probe" -> adserve.sim.load.RedisProbe.main(rest);
             case "forecast" -> adserve.sim.pacing.Forecast.main(rest);
             case "exp2-pacing" -> adserve.sim.pacing.PacingExperiment.main(rest);

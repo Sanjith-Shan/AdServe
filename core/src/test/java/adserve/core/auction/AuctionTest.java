@@ -118,4 +118,17 @@ class AuctionTest {
         assertThat(AuctionConfig.defaults().qualityWeight()).isZero();
         assertThat(Auction.score(1_000, 0.9, 0)).isEqualTo(1_000);
     }
+
+    @Test
+    void criticalValueSeesAPairOfShortSpotsThatTheSwapMisses() {
+        // 60 s break. The winner is one 60 s spot scoring 1,000. No single rival fits alone with
+        // a high score, but two 30 s spots from different advertisers together score 900: the
+        // winner's critical value is 900, while the best single swap is only 500.
+        List<Item> items = List.of(item(0, 0, 0, 60, 1_000), item(1, 1, 1, 30, 500), item(2, 2, 2, 30, 400));
+        PodRules rules = new PodRules(60, 1, 6, Separation.ADJACENT);
+        Pod pod = Pod.of(List.of(items.get(0)));
+        assertThat(Auction.price(pod, items, bids(items), rules, GSP)[0].priceMicros()).isEqualTo(500);
+        assertThat(Auction.criticalPrices(pod, items, bids(items), rules, new adserve.core.pod.ExactSolver(), GSP)[0])
+                .isEqualTo(900);
+    }
 }
