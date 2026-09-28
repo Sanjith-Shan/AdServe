@@ -147,3 +147,39 @@ last.
   a noisy diff.
 - **Fix:** the spec's sets are sorted (`TreeSet`, `EnumSet`), and `CampaignFilesTest` writes the
   sample twice and requires identical bytes. `derive-bids` edits only the bid field in the JSON.
+
+## 14. The pricing experiment ran for an hour without finishing a day
+
+- **Found by:** a heap histogram (`jmap -histo`) of the first full-day experiment 11 run. It had
+  run for an hour; its main thread had used 254 s of CPU in 3,583 s, and the heap held 22.9
+  million `AtomicLong`s and 33.8 million map nodes keyed by strings.
+- **What happened:** the auction experiments ran each engine with the in-memory frequency-cap
+  store, which keeps three string counter keys and an event-id string per impression (about 1 KB).
+  Two engines over a whole replay day are about 10 million impressions, which filled the 6 GB
+  heap, and the collector spent most of the run reclaiming nothing.
+- **Fix:** `AuctionSim.CompactCapStore` packs the same counters (per campaign per day and week,
+  ads per hour, on the same windows) into a few longs per viewer, without the event-id set: in
+  process each impression is recorded once with a fresh id, so the idempotent store never dropped
+  one and the counts are identical. The stalled run was killed and rerun.
+
+## 15. Tuning on the forecast day served nothing
+
+- **Found by:** the first experiment 15 tuning run on 2013-06-10, which delivered no impressions.
+- **What happened:** every campaign's flight is the replay day, 2013-06-11 only, so on the
+  forecast day the flight check refused every campaign.
+- **Fix:** `PacingExperiment` shifts flights to the day of the requests file and records the shift
+  (`flights_shifted_days`) on every row.
+
+## 16. Result rows from the second machine went missing, twice
+
+- **Found by:** result files that never appeared on the laptop although the job's log on the
+  Windows box said it had finished.
+- **What happened:** three separate faults in `scripts/minipc-sim.sh`. `minipc job run` stops
+  following a job after 30 minutes, and a run queued behind the box's lock for longer, so the
+  wrapper gave up before copying rows back. Windows PowerShell under `ErrorActionPreference =
+  'Stop'` turns a native command's first stderr line into a terminating error. And a chain of runs
+  launched from zsh passed `$args` unquoted, which zsh does not split, so the simulator was asked
+  for the command "exp11-pricing --reps 1000 --seed 20130611".
+- **Fix:** the wrapper starts the job without waiting and follows its log until that run's exit
+  line, stderr no longer ends the job, and chains run under bash. No figure was affected: the
+  missing rows were copied from the box, and the misquoted run failed at once.

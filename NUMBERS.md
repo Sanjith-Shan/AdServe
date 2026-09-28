@@ -185,6 +185,36 @@ fetches are in flight, so they miss the deadline less but queue in the pool, and
 widely. At 12,000 every configuration skipped thousands of checks: that is past this laptop's
 capacity with caps enforced.
 
+## Experiment 11: what the auction clears, second price against first price
+
+`results/exp11_pricing.jsonl`. The whole replay day 2013-06-11 (1,745,722 ad breaks, 55
+campaigns) through the real decision engine (targeting, brand safety, caps, DP pod assembly),
+unlimited budgets and unpaced so the pricing rule cannot change which pods win, once per rule in
+lockstep: **all 1,745,722 pods were identical under both rules**, 5,549,515 impressions. Reserve
+50 micros. 95% intervals are a paired bootstrap over the day's 1,541,127 viewers (1,000
+resamples). Money is the log's currency, yuan; this is a simulation over replayed traffic, not
+revenue anyone earned. Run on the Windows mini PC.
+
+| Pricing | Cleared over the day | Mean price per impression | Price over bid |
+|---|---|---|---|
+| **Second price, per pod slot (AdServe)** | **2,759.89 yuan** (2,756.94 to 2,762.59) | 497 micros | 36.3% |
+| First price (pay the bid) | 7,598.96 yuan (7,593.03 to 7,604.34) | 1,369 micros | 100% |
+| Exact critical value (one extra solve per winner) | 3,241.75 yuan (3,238.66 to 3,244.56) | | |
+
+- **Second price cleared 36.3% of first price at identical bids** (interval 36.29% to 36.34%).
+  That is not a forecast of what first price would earn: under first price advertisers shade
+  their bids, and experiment 12 measures that they gain by it.
+- 81.2% of slots were priced by a rival and 18.8% by the reserve; 176 slots (0.003%) were capped
+  at the winner's own bid; no price was above a bid or below the reserve.
+- **The per-slot swap price against the exact critical value** (DESIGN.md, The known
+  approximation): swap pricing collected **85.1%** of the critical-value total. It matched the
+  critical value on 72.6% of slots, was below it on 27.4%, and above it on 12 slots of 5.5
+  million. Per slot the error was 0 at the median, 50% at p90 and 93% at p99: the swap misses the
+  cases where removing a winner lets a combination of shorter spots or a different rival take the
+  room, and in those it undercharges.
+- By advertiser, second-price revenue ranged from 24.9% of bid value (adv3386) to 53.2%
+  (adv3476): the advertisers facing the closest rivals pay the most of their bids.
+
 ## Experiment 12: shading a bid, under second price and first price
 
 `results/exp12_shading.jsonl`; chart `docs/img/shading.svg`. One advertiser at a time multiplies

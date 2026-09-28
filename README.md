@@ -55,6 +55,8 @@ is a range over repeats and comes with its file in `NUMBERS.md`.
 | Pod value against the exact optimum, 5,000 real breaks | DP: 0.00% below the optimum on every break, p99 23 us | greedy: 8.35% below on average |
 | LIVE during 2x overload | LIVE p99 7.8 and 17.0 ms, 74% of VOD refused with a retry hint | no shedding: LIVE p99 40.9 and 60.2 ms |
 | CPU per decision (JMH) | 16.5 us: 55 targeting predicates in 182 ns, DP pod 7.3 us, token 280 ns | |
+| The auction over one replay day: bid x predicted click rate, second price per pod slot, 5.5 million impressions | cleared 2,759.89 yuan, 36.3% of bids; per-slot pricing collected 85.1% of what exact critical-value pricing would | first price at the same bids: 7,598.96 yuan |
+| Budget pacing when winners pay the cleared price | 0 campaigns overspent and 0 out of budget early, but 72.5% of budgets delivered: cheaper impressions outrun the eligible traffic | first price, same bids: 55 of 55 within 5% of budget |
 | Shading a bid 0 to 50% against unchanged rivals, one replay day | second price: bidding full value was best for all 5 advertisers; a 25% shade cost the largest 17.5% of its impressions and 93 yuan of surplus | first price: shading paid for all 5, the largest gaining 802 yuan at a 40% shade |
 | Click-rate predictions 2x too high, per-impression billing | same winners, advertisers pay 98.1% more per real click; billed per click instead, -0.9% | true rates |
 | Random error in click-rate predictions (sigma 0.1, 0.25, 0.5; 10 seeds) | allocative efficiency 99.4%, 94.9%, 79.2% | true rates: 100% |
