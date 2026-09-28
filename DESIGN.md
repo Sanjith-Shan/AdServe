@@ -167,6 +167,15 @@ the auction still compares the bid value with the remaining budget, which is con
 price is never above it). Pacers can also shade instead of skip: `Pacer.bidMultiplier()` scales a
 campaign's bid value before the auction (experiment 15).
 
+**Calibration, measured.** The click rate enters the auction twice: in the score that picks the
+pod, and in the price, because a slot clears at the rival's score, which is the rival's bid times
+its predicted rate. Experiment 16 separates the two by treating each creative's log click rate as
+the truth and giving the auction a distorted copy (uniform scale, one advertiser scaled, or
+per-creative log-normal noise), then scoring every served impression on the truth: expected true
+clicks, cost per true click, and true value delivered against the true-rate run. It also reprices
+each impression as if billed per click at the cleared cost per click (price / predicted rate x
+true rate), the counterfactual under which a uniform bias cancels.
+
 ## Frequency capping
 
 Counters live in Redis as `fc:{viewer}:campaign:d<day>`, `fc:{viewer}:campaign:w<week>` and
