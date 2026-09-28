@@ -185,6 +185,30 @@ fetches are in flight, so they miss the deadline less but queue in the pool, and
 widely. At 12,000 every configuration skipped thousands of checks: that is past this laptop's
 capacity with caps enforced.
 
+## Experiment 12: shading a bid, under second price and first price
+
+`results/exp12_shading.jsonl`; chart `docs/img/shading.svg`. One advertiser at a time multiplies
+every bid by 1 - shade (0 to 50% in 5-point steps) while the other four bid as before, over the
+whole replay day 2013-06-11 (1,745,722 ad breaks, every viewer), unlimited budgets, unpaced,
+frequency caps on, reserve 50 micros. Pods are identical under both rules at every shade (the
+rule changes only what a slot is charged). "Value" is the advertiser's own unshaded bid value of
+each impression it wins, so surplus = value - cost, and truthful bidding under first price has
+zero surplus by construction. Run on the Windows mini PC (AMD Ryzen 3 4300U), CPU only.
+
+- **Under second price, bidding its full value was the best of the 11 shades for all 5
+  advertisers.** For the one with the most impressions (adv3358), a 25% shade gave up **17.5%**
+  of its impressions and **93.26 yuan** of surplus (1,669.62 to 1,576.36), and every shade from
+  5% to 50% left it worse off.
+- **Under first price, shading paid for all 5.** adv3358's surplus peaked at a **40%** shade,
+  **802.12 yuan** above bidding its value; the others peaked at 10% to 50%.
+- The shade lowers what the advertiser pays per impression under both rules (it stops winning
+  the slots where its margin was thinnest), which is why a naive reading of "cost per
+  impression" would recommend shading under second price too; the surplus column is what shows
+  it does not pay.
+- GSP with several slots is not truthful in theory (Edelman, Ostrovsky and Schwarz 2007). On
+  this replay, over this grid of uniform shades, no advertiser found a profitable deviation;
+  that is a measurement of this market, not a proof.
+
 ## Experiment 13: does the auction cost latency?
 
 `results/exp13_latency.jsonl`. The experiment 1 burst (8,000 LIVE requests within 2 s, 30 s
@@ -212,6 +236,66 @@ can show", not as capacity.
 - These p99s are several times experiment 9's 7.3 to 10.2 ms for the same burst on a quieter
   laptop, and the missed-deadline counts are high in every leg (BUG_LOG bug 11): the load, not
   the code, sets them.
+
+## Experiment 15: pacing by bid multiplier instead of throttling
+
+`results/exp15_bid_pacing.jsonl` (per campaign in `exp15_bid_pacing_campaigns.jsonl`), tuning
+on the forecast day in `results/exp15_tuning*.jsonl`. The exp2 fleet (8 nodes, 10 s sync), second
+price with cleared prices charged, the replay day 2013-06-11. The bid-scaling pacer (DESIGN.md,
+Pacing) keeps every campaign in every auction and scales its bid by lambda; its gain (0.5) was
+chosen on 2013-06-10 from 0.25, 0.5 and 1.0 by RMSE against plan. Run on the Windows mini PC.
+
+| Pacer, per-node allowance on | Within 5% of budget | Overspent | Out before 23:00 | RMSE vs plan | Budget delivered | Cost per expected click (micros) |
+|---|---|---|---|---|---|---|
+| Bid scaling | 34 | 0 | 25 (mean 14:01) | 0.364 | 85.4% | 208,104 |
+| Smart Pacing (throttling) | 20 | 0 | 0 | 0.215 | 72.5% | 183,552 |
+| Unpaced | 34 | 0 | 27 (mean 14:40) | 0.405 | 83.2% | 197,425 |
+
+- **Bid scaling did not pace this market.** It ran out early almost as often as no pacing (25
+  campaigns against 27), and cost 13% more per expected click than throttling. Without the
+  per-node allowance it overspent 29 campaigns (unpaced 34, Smart 11).
+- Why: under second price a campaign pays the rival's score or the reserve, not its bid, and
+  with five advertisers and one ad per advertiser per pod most slots have a weak rival or none
+  (the price averaged 29% of the bid unpaced). Lowering the bid changes neither what the
+  campaign wins nor what it pays until the bid drops below that price, and then it loses the
+  slot outright. Spend responds to lambda as a step, not a slope, and a multiplicative
+  controller on a step oscillates. Bid multipliers are the standard answer in thick auctions,
+  where the price moves with the bid; this replay is thin.
+- Smart Pacing kept every campaign in budget all day but delivered only 72.5% of budgets, its
+  median campaign landing 25% short; experiment 14 separates that from the pricing rule.
+
+## Experiment 16: miscalibrated click-rate predictions in the auction
+
+`results/exp16_calibration.jsonl`. The log's smoothed click rates are treated as the truth; the
+auction ranks and prices with a distorted prediction and outcomes are scored on the truth. Whole
+replay day 2013-06-11, unlimited budgets, unpaced, second price, caps on, reserve 50 micros.
+Intervals: paired bootstrap over viewers (4,096 hash clusters, 2,000 resamples) for single
+conditions, and a t interval over 10 seeds for the noise conditions. Allocative efficiency is the
+true value delivered (bid x true rate x duration factor) over what true rates would have
+delivered. Run on the Windows mini PC.
+
+| Prediction | Change in true clicks | Change in cost per true click | Allocative efficiency |
+|---|---|---|---|
+| Every rate x 2.0 | 0.00% | **+98.11%** (billed per click instead: -0.94%) | 1.000 |
+| Every rate x 1.25 | 0.00% | +24.55% | 1.000 |
+| Every rate x 0.5 | 0.00% | -49.06% | 1.000 |
+| One advertiser (adv3358) x 0.5 | +9.95% | -47.74% | **0.914** |
+| One advertiser (adv1458) x 2.0 | +4.18% | -22.49% | 0.937 |
+| Per-creative noise, sigma 0.1 (10 seeds) | +1.28% (0.00 to +2.57) | -0.97% (-6.42 to +4.48) | 0.994 (0.992 to 0.997) |
+| Per-creative noise, sigma 0.25 | +3.33% (+0.28 to +6.38) | -15.70% (-29.55 to -1.86) | 0.949 (0.911 to 0.986) |
+| Per-creative noise, sigma 0.5 | -10.07% (-20.05 to -0.08) | +14.23% (-20.25 to +48.70) | **0.792** (0.678 to 0.905) |
+
+- **A uniform bias moves no impression but reprices every one.** At 2x, winners and true clicks
+  are unchanged and advertisers pay 98.11% more per true click (short of 100% because 19% of
+  slots clear at the fixed reserve). Billed per click at the cleared cost per click, the same
+  bias nearly cancels (-0.94%): per-impression billing is what makes calibration a pricing
+  problem, not only a ranking one.
+- **A relative bias moves impressions.** Under-predicting the largest advertiser by half cost
+  8.6% of allocative efficiency; it lost 57% of its true clicks, and the reserve priced 57% of
+  slots instead of 19%. Total true clicks can rise while efficiency falls, because the auction
+  maximises value (bid x rate), not clicks.
+- **Noise costs efficiency roughly with its size:** 0.6% at sigma 0.1, 5.1% at 0.25, 20.8% at 0.5
+  (worst seed 44%).
 
 ## JMH: the decision path's CPU cost
 

@@ -55,11 +55,17 @@ is a range over repeats and comes with its file in `NUMBERS.md`.
 | Pod value against the exact optimum, 5,000 real breaks | DP: 0.00% below the optimum on every break, p99 23 us | greedy: 8.35% below on average |
 | LIVE during 2x overload | LIVE p99 7.8 and 17.0 ms, 74% of VOD refused with a retry hint | no shedding: LIVE p99 40.9 and 60.2 ms |
 | CPU per decision (JMH) | 16.5 us: 55 targeting predicates in 182 ns, DP pod 7.3 us, token 280 ns | |
+| Shading a bid 0 to 50% against unchanged rivals, one replay day | second price: bidding full value was best for all 5 advertisers; a 25% shade cost the largest 17.5% of its impressions and 93 yuan of surplus | first price: shading paid for all 5, the largest gaining 802 yuan at a 40% shade |
+| Click-rate predictions 2x too high, per-impression billing | same winners, advertisers pay 98.1% more per real click; billed per click instead, -0.9% | true rates |
+| Random error in click-rate predictions (sigma 0.1, 0.25, 0.5; 10 seeds) | allocative efficiency 99.4%, 94.9%, 79.2% | true rates: 100% |
+| Pricing one assembled pod (JMH) | about 1.1 us, against a DP pod solve of 7 to 10 us | |
 | Campaign change reaching a serving node over Hollow, 5,000 campaigns | about 1.1 KB delta against a 1.18 MB snapshot, about 1 s (the watcher polls each second) | |
 
 ![Burst p99 against the sync-write baseline](docs/img/burst_p99.svg)
 
 ![Cumulative spend against plan](docs/img/pacing.svg)
+
+![Shading a bid under second price and first price](docs/img/shading.svg)
 
 Two things to know before quoting any burst figure. Under a burst, a decision whose Redis read
 misses its 20 ms deadline is served without the cap check (in the configured cap mode); the count
@@ -119,6 +125,11 @@ sim/build/install/sim/bin/sim load-ipinyou   # -> data/work/requests-*.bin, camp
 sim/build/install/sim/bin/sim forecast       # -> data/work/forecast.json
 scripts/run-all.sh exp1-burst exp3-caps exp6-dependency exp7-billing exp2-pacing
 ```
+
+The auction experiments (`scripts/exp11-pricing.sh` to `exp16-calibration.sh`, except the
+exp13 latency burst) are CPU-only simulations over the replay day. Their result rows ran on a
+separate Windows machine (AMD Ryzen 3 4300U) through `scripts/minipc-sim.sh`, and every row names
+the machine it ran on.
 
 Each script records into `results/*.jsonl`. The laptop they ran on was shared with another
 project's benchmarks, so every load script takes a lock directory first (`scripts/lib.sh`).

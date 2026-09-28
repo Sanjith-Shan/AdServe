@@ -44,6 +44,9 @@ try {
   foreach (\$f in @($PS_FILES)) { Remove-Item -Force -ErrorAction SilentlyContinue (Join-Path 'results' \$f) }
   \$env:JAVA_HOME = Join-Path \$root 'jdk21'
   \$env:SIM_OPTS = '-Xmx$HEAP'
+  # Windows PowerShell turns a native command's stderr into error records; under 'Stop' the
+  # first line the sim writes to stderr would end the job.
+  \$ErrorActionPreference = 'Continue'
   & (Join-Path \$dist 'sim\\bin\\sim.bat') $ARGS 2>&1 | ForEach-Object { "\$_" }
   \$code = \$LASTEXITCODE
 } finally {
