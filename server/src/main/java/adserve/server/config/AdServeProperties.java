@@ -27,7 +27,21 @@ public record AdServeProperties(
         String seedFile,
         String executor,
         Hollow hollow,
-        Shedding shedding) {
+        Shedding shedding,
+        Auction auction) {
+
+    /**
+     * The auction. {@code pricing} is "second_price" or "first_price"; {@code reserveMicros} is the
+     * per-slot reserve; {@code qualityWeight} above 0 turns on the skip-rate penalty, read from the
+     * beacon consumer's per-creative counters once a creative has {@code qualityMinImpressions}.
+     */
+    public record Auction(String pricing, long reserveMicros, double qualityWeight, long qualityMinImpressions) {
+        public adserve.core.auction.AuctionConfig config() {
+            adserve.core.auction.PricingRule rule = "first_price".equalsIgnoreCase(pricing)
+                    ? adserve.core.auction.PricingRule.FIRST_PRICE : adserve.core.auction.PricingRule.SECOND_PRICE;
+            return new adserve.core.auction.AuctionConfig(rule, reserveMicros, qualityWeight);
+        }
+    }
 
     /**
      * Campaign snapshot delivery. {@code source} is "postgres" (each node polls the store) or

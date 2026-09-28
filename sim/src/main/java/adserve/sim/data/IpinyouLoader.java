@@ -32,7 +32,8 @@ import java.util.TreeSet;
  *   <li>every impression row of each day becomes one {@link AdRequest} (one ad break), written in
  *       arrival order to {@code requests-<day>.bin};</li>
  *   <li>every (advertiser, creative) pair seen on the replay day becomes a campaign whose daily
- *       budget is what that creative actually paid that day, whose targeting is derived from the
+ *       budget is what that creative actually paid that day, whose bid is its median winning price
+ *       that day ({@link BidDerivation}), whose targeting is derived from the
  *       regions, devices and user tags of its real impressions, and whose click rate comes from the
  *       click logs.</li>
  * </ul>
@@ -84,11 +85,13 @@ public final class IpinyouLoader {
         long[] total = {0};
         Map<String, Long> impsBothDays = new HashMap<>();
 
+        BidDerivation bids = new BidDerivation();
         long rows;
         try (RequestFiles.Writer w = new RequestFiles.Writer(out.resolve("requests-" + day + ".bin"))) {
             rows = IpinyouRow.read(raw.resolve("imp." + day + ".txt.bz2"), r -> {
                 AdRequest req = toRequest(r);
                 w.write(req);
+                bids.add(r);
                 String key = r.advertiser() + "/" + r.creative();
                 CreativeStats s = stats.computeIfAbsent(key, k -> new CreativeStats(r.advertiser(), r.creative()));
                 s.impressions++;
@@ -121,15 +124,13 @@ public final class IpinyouLoader {
             if (s != null) s.clicks = v;
         });
 
-        // Advertiser-level click rate and price: the CPC bid is set so that a 30-second spot at the
-        // advertiser's average click rate is worth the advertiser's average paid price.
-        Map<String, double[]> adv = new HashMap<>(); // {impressions, clicks, spend} over both days / replay day
+        // Advertiser-level click rate, the prior each creative's click rate is smoothed toward.
+        Map<String, double[]> adv = new HashMap<>(); // {impressions, clicks} over both days
         for (CreativeStats s : stats.values()) {
-            double[] a = adv.computeIfAbsent(s.advertiser, k -> new double[3]);
+            double[] a = adv.computeIfAbsent(s.advertiser, k -> new double[2]);
             a[0] += impsBothDays.getOrDefault(s.advertiser + "/" + s.creative, 0L);
             a[1] += s.clicks;
         }
-        for (CreativeStats s : stats.values()) adv.get(s.advertiser)[2] += s.spendMicros;
 
         long dayStart = Windows.day(LocalDay.startMs(day)) * Windows.DAY_MS;
         List<Campaign> campaigns = new ArrayList<>();
@@ -138,11 +139,12 @@ public final class IpinyouLoader {
             double advCtr = a[1] / Math.max(1, a[0]);
             double alpha = 2000;
             long imps2 = impsBothDays.getOrDefault(s.advertiser + "/" + s.creative, 0L);
-            double ctr = (s.clicks + alpha * advCtr) / (imps2 + alpha);
-            double avgPrice = a[2] / Math.max(1, advImps.getOrDefault(s.advertiser, 1L));
-            long cpc = Math.round(avgPrice / Math.max(advCtr, 1e-6));
+            double ctr = Math.min(1.0, (s.clicks + alpha * advCtr) / (imps2 + alpha));
+            String id = BidDerivation.campaignId(s.advertiser, s.creative);
+            // The campaign's median winning price on the day over its own smoothed click rate
+            // (a log-normal draw below 30 observed prices): see BidDerivation.
+            long cpc = bids.bid(id, ctr).cpcBidMicros();
             int[] cap = Mapping.cap(s.creative);
-            String id = "c" + s.advertiser + "-" + s.creative.substring(0, Math.min(8, s.creative.length()));
             campaigns.add(new Campaign(
                     id,
                     "adv" + s.advertiser,
@@ -155,7 +157,7 @@ public final class IpinyouLoader {
                     PacerKind.THROTTLE,
                     new FrequencyCap(cap[0], cap[1]),
                     targeting(s, advTags.get(s.advertiser), advImps.get(s.advertiser), globalTags, total[0]),
-                    List.of(new CreativeSpec(s.creative, Mapping.duration(s.creative), Math.min(1.0, ctr))),
+                    List.of(new CreativeSpec(s.creative, Mapping.duration(s.creative), ctr)),
                     true));
         }
         campaigns.sort(Comparator.comparing(Campaign::id));

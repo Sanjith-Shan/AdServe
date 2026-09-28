@@ -17,6 +17,7 @@ public final class Pacers {
             case THROTTLE -> new ThrottlePacer(plan, initialRate, 0.1, 1e-4);
             case SMART -> new SmartPacer(plan, initialRate, 0.3, 4.0);
             case PID -> new PidPacer(plan, initialRate, 0.5, 0.05, 0.1);
+            case BID_SCALE -> new BidShadingPacer(plan, initialRate);
             case ORACLE -> throw new IllegalArgumentException("the oracle pacer needs the day's traffic; build it directly");
         };
     }

@@ -10,7 +10,9 @@ public enum PacerKind {
     /** PID feedback on cumulative spend, ported from AdRankBench. */
     PID,
     /** Knows the day's eligible traffic in advance. Simulation-only baseline. */
-    ORACLE;
+    ORACLE,
+    /** Never throttles; scales the bid by a multiplier in (0, 1] (Balseiro and Gur 2019). */
+    BID_SCALE;
 
     public String wire() {
         return name().toLowerCase();

@@ -2,13 +2,15 @@
 
 AdServe is a video ad server in Java 21 and Spring Boot. Given one ad break (viewer, title,
 break length, device, region), it evaluates every campaign's targeting, enforces policy and
-frequency caps, paces each campaign's daily budget, fills the break with a pod of creatives
-(which ads, in which order, never two car ads back to back), signs a token for every
-impression, and logs the decision to Kafka without a database write on the request path.
+frequency caps, paces each campaign's daily budget, runs an auction among the campaigns left
+(ranked by bid times predicted click rate, each winner charged the least it needed to win), fills
+the break with a pod of creatives (which ads, in which order, never two car ads back to back),
+signs a token for every impression, and logs the decision to Kafka without a database write on the request path.
 **Traffic is replayed from real ad logs, and the viewers are simulated.** The requests are the
 1,745,722 impression rows of one day of the public iPinYou RTB dataset (season 2, 2013-06-11), and the
 campaigns are that day's 55 real creatives from 5 advertisers, each with a daily budget equal to
-what it actually paid that day and a click rate taken from the click logs. No one watched
+what it actually paid that day, a click rate taken from the click logs, and a bid derived from
+the prices it really won at that day (the median, per campaign; `results/m0_bids.md`). No one watched
 anything. Where the log has no field for something a video ad server needs (break length,
 creative duration, a TV device class, title genre), a deterministic rule fills it in, and
 `DESIGN.md` lists every such rule. Every latency figure comes from one laptop, with the load
@@ -23,8 +25,12 @@ ad break request (gRPC or REST)
    -> targeting    every campaign's rules compiled to bitsets, evaluated without allocating
    -> policy       flight, budget, brand safety
    -> caps         one Redis round trip for the viewer's frequency counters
-   -> pacing       each campaign's pass-through rate (LinkedIn throttling, Smart Pacing, PID)
-   -> pod          fill the break: DP over 15 s slots, one ad per advertiser, no car ad after a car ad
+   -> pacing       each campaign's pass-through rate (LinkedIn throttling, Smart Pacing, PID, bid scaling)
+   -> auction      score = bid x predicted click rate; below the reserve does not enter
+   -> pod          fill the break with the highest total score: DP over 15 s slots, one ad per
+                   advertiser, no car ad after a car ad
+   -> pricing      generalized second price per slot: pay the least bid that still beats the best
+                   rival that could have taken the slot, floored at the reserve
    -> tokens       HMAC-signed impression tokens carrying the serving region
    -> log          whole decision to Kafka, fire and forget. No database on this path.
 ```
@@ -49,11 +55,19 @@ is a range over repeats and comes with its file in `NUMBERS.md`.
 | Pod value against the exact optimum, 5,000 real breaks | DP: 0.00% below the optimum on every break, p99 23 us | greedy: 8.35% below on average |
 | LIVE during 2x overload | LIVE p99 7.8 and 17.0 ms, 74% of VOD refused with a retry hint | no shedding: LIVE p99 40.9 and 60.2 ms |
 | CPU per decision (JMH) | 16.5 us: 55 targeting predicates in 182 ns, DP pod 7.3 us, token 280 ns | |
+| The auction over one replay day: bid x predicted click rate, second price per pod slot, 5.5 million impressions | cleared 2,759.89 yuan, 36.3% of bids; per-slot pricing collected 85.1% of what exact critical-value pricing would | first price at the same bids: 7,598.96 yuan |
+| Budget pacing when winners pay the cleared price | 0 campaigns overspent and 0 out of budget early, but 72.5% of budgets delivered: cheaper impressions outrun the eligible traffic | first price, same bids: 55 of 55 within 5% of budget |
+| Shading a bid 0 to 50% against unchanged rivals, one replay day | second price: bidding full value was best for all 5 advertisers; a 25% shade cost the largest 17.5% of its impressions and 93 yuan of surplus | first price: shading paid for all 5, the largest gaining 802 yuan at a 40% shade |
+| Click-rate predictions 2x too high, per-impression billing | unlimited budgets: same winners, advertisers pay 98.1% more per real click (billed per click instead, -0.9%); real budgets, paced: 22.1% fewer real clicks at 60.0% more per click | true rates |
+| Random error in click-rate predictions (sigma 0.1, 0.25, 0.5; 10 seeds) | allocative efficiency 99.4%, 94.9%, 79.2% | true rates: 100% |
+| Pricing one assembled pod (JMH) | about 1.1 us, against a DP pod solve of 7 to 10 us | |
 | Campaign change reaching a serving node over Hollow, 5,000 campaigns | about 1.1 KB delta against a 1.18 MB snapshot, about 1 s (the watcher polls each second) | |
 
 ![Burst p99 against the sync-write baseline](docs/img/burst_p99.svg)
 
 ![Cumulative spend against plan](docs/img/pacing.svg)
+
+![Shading a bid under second price and first price](docs/img/shading.svg)
 
 Two things to know before quoting any burst figure. Under a burst, a decision whose Redis read
 misses its 20 ms deadline is served without the cap check (in the configured cap mode); the count
@@ -113,6 +127,11 @@ sim/build/install/sim/bin/sim load-ipinyou   # -> data/work/requests-*.bin, camp
 sim/build/install/sim/bin/sim forecast       # -> data/work/forecast.json
 scripts/run-all.sh exp1-burst exp3-caps exp6-dependency exp7-billing exp2-pacing
 ```
+
+The auction experiments (`scripts/exp11-pricing.sh` to `exp16-calibration.sh`, except the
+exp13 latency burst) are CPU-only simulations over the replay day. Their result rows ran on a
+separate Windows machine (AMD Ryzen 3 4300U) through `scripts/minipc-sim.sh`, and every row names
+the machine it ran on.
 
 Each script records into `results/*.jsonl`. The laptop they ran on was shared with another
 project's benchmarks, so every load script takes a lock directory first (`scripts/lib.sh`).

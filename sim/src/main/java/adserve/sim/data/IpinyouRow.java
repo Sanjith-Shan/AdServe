@@ -20,10 +20,12 @@ import java.util.function.Consumer;
  * bidid, timestamp, logtype, ipinyouid, useragent, IP, region, city, adexchange, domain, url,
  * urlid, slotid, slotwidth, slotheight, slotvisibility, slotformat, slotprice, creative, bidprice,
  * payprice, keypage, advertiser, usertags). Field layout from the dataset README and
- * wnzhang/make-ipinyou-data.
+ * wnzhang/make-ipinyou-data. {@code slotPrice} (the slot's floor), {@code bidPrice} (iPinYou's own
+ * bid) and {@code payPrice} (the second price actually paid) are all CPM in fen.
  */
 public record IpinyouRow(String bidId, long tsMs, String userId, String userAgent, String region,
-                         String domain, String slotId, String creative, int payPrice, String advertiser,
+                         String domain, String slotId, String creative, int slotPrice, int bidPrice, int payPrice,
+                         String advertiser,
                          String[] userTags) {
 
     private static final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
@@ -34,13 +36,16 @@ public record IpinyouRow(String bidId, long tsMs, String userId, String userAgen
         long ts = LocalDateTime.parse(f[1], TS).toInstant(ZoneOffset.UTC).toEpochMilli();
         String tags = f.length > 23 ? f[23] : "null";
         String[] t = tags.isEmpty() || tags.equals("null") ? new String[0] : tags.split(",");
-        int pay;
+        return new IpinyouRow(f[0], ts, f[3], f[4], f[6], f[9], f[12], f[18],
+                intOrZero(f[17]), intOrZero(f[19]), intOrZero(f[20]), f[22], t);
+    }
+
+    private static int intOrZero(String s) {
         try {
-            pay = Integer.parseInt(f[20]);
+            return Integer.parseInt(s.trim());
         } catch (NumberFormatException e) {
-            pay = 0;
+            return 0;
         }
-        return new IpinyouRow(f[0], ts, f[3], f[4], f[6], f[9], f[12], f[18], pay, f[22], t);
     }
 
     /** Streams a .txt.bz2 (or plain .txt) log. Returns the number of rows read. */

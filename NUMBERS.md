@@ -20,6 +20,18 @@ creatives from 5 advertisers. Viewers are simulated: nobody watched anything.
 - **10,000** real-log ad breaks decided over gRPC, and every one of the **9,947** distinct request
   ids (the log repeats 53 bid ids) found on `ad.responses`. `results/m1_replay.jsonl`, last row.
 
+## The auction, M0: bids and reserve from the replay
+
+`results/m0_bids.md` (table) and `results/m0_bids.jsonl` (one row per campaign). Replay day
+2013-06-11. Money is micros of the log's currency (CNY) per impression, never dollars.
+
+- **All 55 campaigns bid from their own median winning price** on the replay day (none needed the
+  log-normal fallback, fitted to every positive paying price: mu 6.4049, sigma 0.8166, median 605
+  micros). A 30 s spot at a campaign's own click rate bids exactly that median.
+- **Reserve: 50 micros per impression per slot**, the day's median slot floor price. 32.4% of
+  slots had no floor, 0.37% of impressions paid below 50, and 0 of 55 campaigns bid below it.
+- Paying prices: p10 200, p50 700, p90 1,660, p99 2,600 micros per impression.
+
 ## Experiment 1: a live break, with and without a database write on the path
 
 `results/exp1_burst.jsonl`, plus the same bursts inside `results/exp9_runtime.jsonl`. N requests
@@ -173,6 +185,200 @@ fetches are in flight, so they miss the deadline less but queue in the pool, and
 widely. At 12,000 every configuration skipped thousands of checks: that is past this laptop's
 capacity with caps enforced.
 
+## Experiment 11: what the auction clears, second price against first price
+
+`results/exp11_pricing.jsonl`. The whole replay day 2013-06-11 (1,745,722 ad breaks, 55
+campaigns) through the real decision engine (targeting, brand safety, caps, DP pod assembly),
+unlimited budgets and unpaced so the pricing rule cannot change which pods win, once per rule in
+lockstep: **all 1,745,722 pods were identical under both rules**, 5,549,515 impressions. Reserve
+50 micros. 95% intervals are a paired bootstrap over the day's 1,541,127 viewers (1,000
+resamples). Money is the log's currency, yuan; this is a simulation over replayed traffic, not
+revenue anyone earned. Run on the Windows mini PC.
+
+| Pricing | Cleared over the day | Mean price per impression | Price over bid |
+|---|---|---|---|
+| **Second price, per pod slot (AdServe)** | **2,759.89 yuan** (2,756.94 to 2,762.59) | 497 micros | 36.3% |
+| First price (pay the bid) | 7,598.96 yuan (7,593.03 to 7,604.34) | 1,369 micros | 100% |
+| Exact critical value (one extra solve per winner) | 3,241.75 yuan (3,238.66 to 3,244.56) | | |
+
+- **Second price cleared 36.3% of first price at identical bids** (interval 36.29% to 36.34%).
+  That is not a forecast of what first price would earn: under first price advertisers shade
+  their bids, and experiment 12 measures that they gain by it.
+- 81.2% of slots were priced by a rival and 18.8% by the reserve; 176 slots (0.003%) were capped
+  at the winner's own bid; no price was above a bid or below the reserve.
+- **The per-slot swap price against the exact critical value** (DESIGN.md, The known
+  approximation): swap pricing collected **85.1%** of the critical-value total. It matched the
+  critical value on 72.6% of slots, was below it on 27.4%, and above it on 12 slots of 5.5
+  million. Per slot the error was 0 at the median, 50% at p90 and 93% at p99: the swap misses the
+  cases where removing a winner lets a combination of shorter spots or a different rival take the
+  room, and in those it undercharges.
+- By advertiser, second-price revenue ranged from 24.9% of bid value (adv3386) to 53.2%
+  (adv3476): the advertisers facing the closest rivals pay the most of their bids.
+
+## Experiment 12: shading a bid, under second price and first price
+
+`results/exp12_shading.jsonl`; chart `docs/img/shading.svg`. One advertiser at a time multiplies
+every bid by 1 - shade (0 to 50% in 5-point steps) while the other four bid as before, over the
+whole replay day 2013-06-11 (1,745,722 ad breaks, every viewer), unlimited budgets, unpaced,
+frequency caps on, reserve 50 micros. Pods are identical under both rules at every shade (the
+rule changes only what a slot is charged). "Value" is the advertiser's own unshaded bid value of
+each impression it wins, so surplus = value - cost, and truthful bidding under first price has
+zero surplus by construction. Run on the Windows mini PC (AMD Ryzen 3 4300U), CPU only.
+
+- **Under second price, bidding its full value was the best of the 11 shades for all 5
+  advertisers.** For the one with the most impressions (adv3358), a 25% shade gave up **17.5%**
+  of its impressions and **93.26 yuan** of surplus (1,669.62 to 1,576.36), and every shade from
+  5% to 50% left it worse off.
+- **Under first price, shading paid for all 5.** adv3358's surplus peaked at a **40%** shade,
+  **802.12 yuan** above bidding its value; the others peaked at 10% to 50%.
+- The shade lowers what the advertiser pays per impression under both rules (it stops winning
+  the slots where its margin was thinnest), which is why a naive reading of "cost per
+  impression" would recommend shading under second price too; the surplus column is what shows
+  it does not pay.
+- GSP with several slots is not truthful in theory (Edelman, Ostrovsky and Schwarz 2007). On
+  this replay, over this grid of uniform shades, no advertiser found a profitable deviation;
+  that is a measurement of this market, not a proof.
+
+## Experiment 13: does the auction cost latency?
+
+`results/exp13_latency.jsonl`. The experiment 1 burst (8,000 LIVE requests within 2 s, 30 s
+warm-up at 3,000/s, G1, virtual threads) against three servers, interleaved in two rounds of
+three repeats each so the laptop's load drifted over all of them alike: this server with
+second-price pricing, the same server with first-price pricing, and the server as of commit
+`d208783`, before the auction existed. All three seed the same campaigns (bids from the replay).
+**The laptop was busy with another project's model training throughout: the 1-minute load
+average before the bursts ranged from 35 to 73.** Read this table as "no difference the noise
+can show", not as capacity.
+
+| Server | p99 per burst, sorted | Median p99 | Errors | Counter deadline missed (of 8,000) | Ads per pod |
+|---|---|---|---|---|---|
+| Auction, second price | 63.2, 81.6, 100.7, 119.6, 144.5, 185.9 ms | 110.2 ms | 0 of 48,000 | 282 to 2,518 | 1.67 to 1.69 |
+| Auction, first price | 42.8, 69.6, 79.3, 109.1, 119.7, 174.7 ms | 94.2 ms | 0 of 48,000 | 364 to 3,313 | 1.46 to 1.48 |
+| Before the auction | 97.5, 103.9, 107.8, 121.0, 199.4, 923.6 ms | 114.4 ms | 0 of 48,000 | 125 to 3,429 | 1.44 to 1.48 |
+
+- **Every leg served all 48,000 requests with 0 errors, and the three p99 ranges overlap
+  almost completely.** Under this load the auction and its pricing step add nothing the burst
+  can resolve; the CPU cost itself is in the JMH section below.
+- Second-price pods held more ads (1.67 to 1.69 against 1.44 to 1.48). Winners are charged the
+  cleared price instead of the bid, so budgets and the pacers' spend drain slower through the
+  warm-up and burst and more campaigns stay eligible. Pod assembly itself is identical under
+  both rules.
+- These p99s are several times experiment 9's 7.3 to 10.2 ms for the same burst on a quieter
+  laptop, and the missed-deadline counts are high in every leg (BUG_LOG bug 11): the load, not
+  the code, sets them.
+
+## Experiment 14: pacing when winners pay the cleared price
+
+`results/exp14_pacing_pricing.jsonl` (per campaign in `exp14_pacing_pricing_campaigns.jsonl`).
+Experiment 2's setup (8 nodes, 10 s sync, every pacer, with and without the per-node allowance,
+the replay day 2013-06-11) on the bids derived from the replay, once under first price (charged
+the bid, as in experiment 2) and once under second price (charged the cleared price), reserve 50
+micros. Budgets are unchanged: each campaign's real spend that day. Run on the Windows mini PC.
+
+| Pacer, allowance on | First price: within 5% / overspent / out before 23:00 / RMSE | Second price: within 5% / overspent / out before 23:00 / RMSE | Second price: budget delivered |
+|---|---|---|---|
+| **Smart Pacing** | **55 / 0 / 1 / 0.082** | **20 / 0 / 0 / 0.215** | 72.5% |
+| Throttling | 55 / 0 / 33 / 0.185 | 28 / 0 / 10 / 0.299 | 74.5% |
+| PID | 27 / 0 / 8 / 0.169 | 10 / 0 / 3 / 0.262 | 65.7% |
+| Perfect forecast | 55 / 0 / 46 / 0.151 | 31 / 0 / 12 / 0.278 | 77.0% |
+| Unpaced | 55 / 0 / 49 / 0.432 | 34 / 0 / 27 / 0.405 | 83.2% |
+
+- **Under first price, experiment 2's result holds on the new bids and slightly improves: Smart
+  Pacing put all 55 campaigns within 5% of budget, overspent none, and RMSE fell to 0.082.**
+- **Under second price the safety half holds (0 overspent with the allowance, 0 out of budget
+  early under Smart Pacing), but budgets stop being spendable.** Winners paid 25.5 to 29.3% of
+  their bids on average, so the same budgets bought 2.4 times the impressions under Smart Pacing
+  (5.66 million against 2.35 million) and 2.6 times unpaced, and many campaigns ran out of traffic before they ran out of
+  money.
+- The mechanism is the one-ad-per-advertiser rule. Unpaced under second price, **11 campaigns
+  spent under 5% of their budgets** while sibling creatives of the same advertiser spent in full:
+  the advertiser's strongest creative held its one slot per pod all day. Under first price the
+  same leaders spent out within the first hours and the siblings took over (0 starved).
+- Smart Pacing's own shortfall: of the 35 campaigns it left more than 5% short, 21 were short
+  even unpaced; the other 14 were spendable (unpaced spent them) and Smart landed 10 to 51%
+  short, most likely because throttling a leader changes its siblings' traffic in ways the
+  per-campaign forecast does not model.
+- Without the allowance, second-price unpaced delivery overspent 34 campaigns, the worst by 552%; Smart Pacing 11 (worst 15%). The allowance still does the work it did in experiment 2.
+
+## Experiment 15: pacing by bid multiplier instead of throttling
+
+`results/exp15_bid_pacing.jsonl` (per campaign in `exp15_bid_pacing_campaigns.jsonl`), tuning
+on the forecast day in `results/exp15_tuning*.jsonl`. The exp2 fleet (8 nodes, 10 s sync), second
+price with cleared prices charged, the replay day 2013-06-11. The bid-scaling pacer (DESIGN.md,
+Pacing) keeps every campaign in every auction and scales its bid by lambda; its gain (0.5) was
+chosen on 2013-06-10 from 0.25, 0.5 and 1.0 by RMSE against plan. Run on the Windows mini PC.
+
+| Pacer, per-node allowance on | Within 5% of budget | Overspent | Out before 23:00 | RMSE vs plan | Budget delivered | Cost per expected click (micros) |
+|---|---|---|---|---|---|---|
+| Bid scaling | 34 | 0 | 25 (mean 14:01) | 0.364 | 85.4% | 208,104 |
+| Smart Pacing (throttling) | 20 | 0 | 0 | 0.215 | 72.5% | 183,552 |
+| Unpaced | 34 | 0 | 27 (mean 14:40) | 0.405 | 83.2% | 197,425 |
+
+- **Bid scaling did not pace this market.** It ran out early almost as often as no pacing (25
+  campaigns against 27), and cost 13% more per expected click than throttling. Without the
+  per-node allowance it overspent 29 campaigns (unpaced 34, Smart 11).
+- Why: under second price a campaign pays the rival's score or the reserve, not its bid, and
+  with five advertisers and one ad per advertiser per pod most slots have a weak rival or none
+  (the price averaged 29% of the bid unpaced). Lowering the bid changes neither what the
+  campaign wins nor what it pays until the bid drops below that price, and then it loses the
+  slot outright. Spend responds to lambda as a step, not a slope, and a multiplicative
+  controller on a step oscillates. Bid multipliers are the standard answer in thick auctions,
+  where the price moves with the bid; this replay is thin.
+- Smart Pacing kept every campaign in budget all day but delivered only 72.5% of budgets, its
+  median campaign landing 25% short; experiment 14 explains why.
+
+## Experiment 16: miscalibrated click-rate predictions in the auction
+
+`results/exp16_calibration.jsonl`. The log's smoothed click rates are treated as the truth; the
+auction ranks and prices with a distorted prediction and outcomes are scored on the truth. Whole
+replay day 2013-06-11, second price, caps on, reserve 50 micros; the first leg has unlimited
+budgets and no pacing, so only allocation and price move. Intervals: paired bootstrap over viewers (4,096 hash clusters, 2,000 resamples) for single
+conditions, and a t interval over 10 seeds for the noise conditions. Allocative efficiency is the
+true value delivered (bid x true rate x duration factor) over what true rates would have
+delivered. Run on the Windows mini PC.
+
+| Prediction | Change in true clicks | Change in cost per true click | Allocative efficiency |
+|---|---|---|---|
+| Every rate x 2.0 | 0.00% | **+98.11%** (billed per click instead: -0.94%) | 1.000 |
+| Every rate x 1.25 | 0.00% | +24.55% | 1.000 |
+| Every rate x 0.5 | 0.00% | -49.06% | 1.000 |
+| One advertiser (adv3358) x 0.5 | +9.95% | -47.74% | **0.914** |
+| One advertiser (adv1458) x 2.0 | +4.18% | -22.49% | 0.937 |
+| Per-creative noise, sigma 0.1 (10 seeds) | +1.28% (0.00 to +2.57) | -0.97% (-6.42 to +4.48) | 0.994 (0.992 to 0.997) |
+| Per-creative noise, sigma 0.25 | +3.33% (+0.28 to +6.38) | -15.70% (-29.55 to -1.86) | 0.949 (0.911 to 0.986) |
+| Per-creative noise, sigma 0.5 | -10.07% (-20.05 to -0.08) | +14.23% (-20.25 to +48.70) | **0.792** (0.678 to 0.905) |
+
+- **A uniform bias moves no impression but reprices every one.** At 2x, winners and true clicks
+  are unchanged and advertisers pay 98.11% more per true click (short of 100% because 19% of
+  slots clear at the fixed reserve). Billed per click at the cleared cost per click, the same
+  bias nearly cancels (-0.94%): per-impression billing is what makes calibration a pricing
+  problem, not only a ranking one.
+- **A relative bias moves impressions.** Under-predicting the largest advertiser by half cost
+  8.6% of allocative efficiency; it lost 57% of its true clicks, and the reserve priced 57% of
+  slots instead of 19%. Total true clicks can rise while efficiency falls, because the auction
+  maximises value (bid x rate), not clicks.
+- **Noise costs efficiency roughly with its size:** 0.6% at sigma 0.1, 5.1% at 0.25, 20.8% at 0.5
+  (worst seed 44%).
+
+**With budgets binding** (second leg: each campaign's real budget, Smart Pacing from the forecast
+day, same conditions except that the per-advertiser under-prediction and noise conditions were not
+run here), a miscalibration that raises prices also spends budgets sooner, so it costs clicks:
+
+| Prediction, paced | Change in true clicks | Change in cost per true click | True value delivered vs true rates |
+|---|---|---|---|
+| Every rate x 2.0 | **-22.11%** | **+59.95%** | 0.795 |
+| Every rate x 1.25 | -7.26% | +18.18% | 0.936 |
+| Every rate x 0.8 | +6.83% | -15.77% | 1.057 |
+| Every rate x 0.5 | +17.87% | -40.33% | 1.156 |
+| One advertiser x 2.0 (each of the five) | -1.51% to -6.64% | -2.08% to +14.26% | 0.974 to 0.987 |
+
+- **With real budgets, a 2x over-prediction cost advertisers 22.11% of their true clicks and
+  raised their cost per true click 59.95%.** Under-prediction does the reverse (cheaper
+  impressions stretch the same budgets), which is why the last column can exceed 1 here: it is
+  the value delivered relative to the true-rate run, not an efficiency bounded by it.
+- The reserve priced 71% of slots in this leg against 19% unpaced: with every campaign throttled,
+  most slots have no rival left (the same thinning experiment 14 describes).
+
 ## JMH: the decision path's CPU cost
 
 `results/jmh-hotpath.json`, average time per call, one fork, 5 measured iterations.
@@ -185,6 +391,22 @@ capacity with caps enforced.
 | Exact branch and bound, same breaks | 7.0 us |
 | Greedy | 1.7 us |
 | Sign one impression token (HMAC-SHA256) | 280 ns |
+
+### JMH with the auction
+
+`results/jmh-auction.json`, same benchmark class, one fork, 5 measured iterations, run while the
+laptop's load average was about 35 (another project's training), so the error bars are wide:
+
+| What | Time |
+|---|---|
+| Second-price pricing of one assembled pod (every slot against its best legal rival) | **1.1 us** (+- 0.4) |
+| One whole decision, second price | 22.6 us (+- 7.4) |
+| One whole decision, first price (same scoring and assembly, no rival search) | 19.3 us (+- 4.0) |
+| DP pod solve | 9.5 us (+- 5.0) |
+| All 55 targeting predicates | 184 ns (+- 21) |
+
+Pricing is about 1 us against a DP solve of 7 to 10 us: a small fraction of the decision, and
+the whole-decision gap between the two rules is inside the noise of this run.
 
 ## Experiment 10: the counter deadline, and where the server sits
 

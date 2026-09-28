@@ -57,6 +57,11 @@ adserve:
     source: postgres
     dir: build/hollow-blobs
     publish: false
+  auction:
+    pricing: second_price
+    reserve-micros: 50
+    quality-weight: 0.0
+    quality-min-impressions: 200
   shedding:
     enabled: false
     capacity-per-second: 8000

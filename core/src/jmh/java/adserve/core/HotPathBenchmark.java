@@ -3,6 +3,9 @@ package adserve.core;
 import ads.v1.AdRequest;
 import ads.v1.Region;
 import ads.v1.Token;
+import adserve.core.auction.Auction;
+import adserve.core.auction.AuctionConfig;
+import adserve.core.auction.PricingRule;
 import adserve.core.engine.BudgetLedger;
 import adserve.core.engine.CampaignSnapshot;
 import adserve.core.engine.DecisionEngine;
@@ -20,6 +23,7 @@ import adserve.core.pod.DpSolver;
 import adserve.core.pod.ExactSolver;
 import adserve.core.pod.GreedySolver;
 import adserve.core.pod.Item;
+import adserve.core.pod.Pod;
 import adserve.core.pod.PodRules;
 import adserve.core.pod.Separation;
 import adserve.core.policy.BrandSafety;
@@ -52,6 +56,9 @@ public class HotPathBenchmark {
     TokenCodec tokens;
     Token token;
     DecisionEngine engine;
+    DecisionEngine firstPriceEngine;
+    List<Pod> pods;
+    List<long[]> bids;
     int i;
 
     static Path file(String name) {
@@ -87,6 +94,15 @@ public class HotPathBenchmark {
             }
             breaks.add(items);
         }
+        pods = new ArrayList<>();
+        bids = new ArrayList<>();
+        for (int k = 0; k < requests.size(); k++) {
+            List<Item> items = breaks.get(k);
+            pods.add(new DpSolver().solve(items, new PodRules(requests.get(k).getBreakLengthS(), 1, 6, Separation.ADJACENT)));
+            long[] b = new long[items.size()];
+            for (Item it : items) b[it.ref()] = it.value();
+            bids.add(b);
+        }
         tokens = new TokenCodec("benchmark-key-0123456789abcdef0123456789".getBytes(StandardCharsets.UTF_8));
         token = Token.newBuilder().setImpressionId("0123456789abcdef0123456789ab").setCampaignId("c1458-2abc9eaf")
                 .setCreativeId("2abc9eaf57d17a96195af3f63c45dc72").setServingRegion(Region.US_EAST)
@@ -101,10 +117,19 @@ public class HotPathBenchmark {
 
             public void recordImpression(String v, String c, String e, long ts) {}
         };
-        engine = new DecisionEngine(EngineConfig.defaults(), SnapshotSource.fixed(snap), zeroCaps, ledger,
+        EngineConfig second = EngineConfig.defaults().withAuction(AuctionConfig.defaults().withReserve(RESERVE));
+        engine = new DecisionEngine(second, SnapshotSource.fixed(snap), zeroCaps, ledger,
                 PacingController.standard(60_000, c -> PacingPlan.flat(1440), ledger), new DpSolver(), tokens,
                 DecisionLog.NONE, bs, v -> List.of(), () -> 0.0, StageTimer.NONE);
+        BudgetLedger ledger2 = new BudgetLedger();
+        firstPriceEngine = new DecisionEngine(second.withAuction(second.auction().withPricing(PricingRule.FIRST_PRICE)),
+                SnapshotSource.fixed(snap), zeroCaps, ledger2,
+                PacingController.standard(60_000, c -> PacingPlan.flat(1440), ledger2), new DpSolver(), tokens,
+                DecisionLog.NONE, bs, v -> List.of(), () -> 0.0, StageTimer.NONE);
     }
+
+    /** The server's default per-slot reserve (application.yml), so the benchmark prices as served. */
+    static final long RESERVE = 50;
 
     int next() {
         i = (i + 1) % requests.size();
@@ -148,5 +173,21 @@ public class HotPathBenchmark {
     public void fullDecision(Blackhole bh) {
         AdRequest r = requests.get(next());
         bh.consume(engine.decide(r));
+    }
+
+    /** Second-price pricing of an already assembled DP pod: every slot against its best legal rival. */
+    @Benchmark
+    public Object auctionPriceSecond() {
+        int k = next();
+        return Auction.price(pods.get(k), breaks.get(k), bids.get(k),
+                new PodRules(requests.get(k).getBreakLengthS(), 1, 6, Separation.ADJACENT),
+                AuctionConfig.defaults().withReserve(RESERVE));
+    }
+
+    /** The same whole decision as {@link #fullDecision} with first-price pricing: the auction's cost is the difference. */
+    @Benchmark
+    public void fullDecisionFirstPrice(Blackhole bh) {
+        AdRequest r = requests.get(next());
+        bh.consume(firstPriceEngine.decide(r));
     }
 }

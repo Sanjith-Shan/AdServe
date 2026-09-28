@@ -5,6 +5,8 @@ import ads.v1.AdResponse;
 import ads.v1.DecisionRecord;
 import ads.v1.Impression;
 import ads.v1.Priority;
+import adserve.core.auction.AuctionConfig;
+import adserve.core.auction.PricingRule;
 import adserve.core.caps.CapCounts;
 import adserve.core.caps.CapMode;
 import adserve.core.caps.CapStore;
@@ -79,8 +81,10 @@ class DecisionEngineTest {
 
     @Test
     void budgetStopsServing() {
+        // A lone bidder clears at the reserve under second price, so the reserve is what spends it.
         CampaignSnapshot tiny = new CampaignSnapshot(1, List.of(c("shop", "C", "retail", 0, 400_000)));
-        DecisionEngine e = Engines.engine(tiny, new InMemoryCapStore(true), EngineConfig.defaults(), DecisionLog.NONE);
+        EngineConfig cfg = EngineConfig.defaults().withAuction(AuctionConfig.defaults().withReserve(100_000));
+        DecisionEngine e = Engines.engine(tiny, new InMemoryCapStore(true), cfg, DecisionLog.NONE);
         long spent = 0;
         for (int i = 0; i < 10; i++) {
             spent += e.decide(req("v" + i, "drama", T0 + i)).response().getPodList().stream()
@@ -106,5 +110,40 @@ class DecisionEngineTest {
         assertThat(denied.response().getPodList()).extracting(i -> i.getCreative().getCampaignId())
                 .doesNotContain("auto1").isNotEmpty();
         assertThat(denied.record().getCapMode()).isEqualTo("unknown_deny");
+    }
+
+    @Test
+    void theDecisionLogCarriesClearedPrices() {
+        List<DecisionRecord> logged = new ArrayList<>();
+        EngineConfig cfg = EngineConfig.defaults().withAuction(AuctionConfig.defaults().withReserve(1_000));
+        DecisionEngine e = Engines.engine(snap, new InMemoryCapStore(true), cfg, logged::add);
+        AdResponse r = e.decide(req("v1", "drama", T0)).response();
+        DecisionRecord rec = logged.get(0);
+        assertThat(rec.getPricing()).isEqualTo("second_price");
+        assertThat(rec.getReserveMicros()).isEqualTo(1_000);
+        assertThat(rec.getPodClearedMicros()).isEqualTo(r.getPodList().stream().mapToLong(Impression::getPriceMicros).sum());
+        assertThat(r.getPodList()).allSatisfy(i -> {
+            assertThat(i.getPriceMicros()).isBetween(1_000L, i.getBidMicros());
+            assertThat(i.getScoreMicros()).isEqualTo(i.getBidMicros());
+        });
+        assertThat(rec.getPodClearedMicros()).isLessThanOrEqualTo(rec.getPodValueMicros());
+    }
+
+    @Test
+    void secondPriceChargesTheBudgetLessThanFirstPrice() {
+        EngineConfig second = EngineConfig.defaults().withAuction(AuctionConfig.defaults().withReserve(1_000));
+        EngineConfig first = second.withAuction(second.auction().withPricing(PricingRule.FIRST_PRICE));
+        DecisionEngine a = Engines.engine(snap, new InMemoryCapStore(false), second, DecisionLog.NONE);
+        DecisionEngine b = Engines.engine(snap, new InMemoryCapStore(false), first, DecisionLog.NONE);
+        AdResponse ra = a.decide(req("v1", "drama", T0)).response();
+        AdResponse rb = b.decide(req("v1", "drama", T0)).response();
+        assertThat(rb.getPodList()).allSatisfy(i -> assertThat(i.getPriceMicros()).isEqualTo(i.getBidMicros()));
+        long spentA = a.budget().spent("auto1", T0 / 86_400_000L) + a.budget().spent("auto2", T0 / 86_400_000L)
+                + a.budget().spent("shop", T0 / 86_400_000L);
+        long spentB = b.budget().spent("auto1", T0 / 86_400_000L) + b.budget().spent("auto2", T0 / 86_400_000L)
+                + b.budget().spent("shop", T0 / 86_400_000L);
+        assertThat(spentA).isEqualTo(ra.getPodList().stream().mapToLong(Impression::getPriceMicros).sum());
+        assertThat(spentB).isEqualTo(rb.getPodList().stream().mapToLong(Impression::getBidMicros).sum());
+        assertThat(spentA).isLessThanOrEqualTo(spentB);
     }
 }

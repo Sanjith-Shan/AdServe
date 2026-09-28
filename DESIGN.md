@@ -29,6 +29,18 @@ and what each one contributed.
   used as competitive-separation categories.
 - Netflix open source: the DGS framework (`netflix.github.io/dgs`) for the GraphQL campaign API,
   and Hollow (`hollow.how`) for the campaign snapshot.
+- Edelman, Ostrovsky, Schwarz. *Internet Advertising and the Generalized Second-Price Auction:
+  Selling Billions of Dollars Worth of Keywords*, American Economic Review 2007. The generalized
+  second-price rule each pod slot is priced by, and why it is not truthful once there is more
+  than one slot (experiment 12 measures that on the replay).
+- Varian. *Position Auctions*, International Journal of Industrial Organization 2007. Ranking by
+  bid times a quality factor (here the click rate) and pricing each position at the next
+  bidder's score divided by the winner's factor.
+- Meta Business Help Center, *About ad auctions* ("total value" is bid times estimated action
+  rate plus ad quality; the winner pays the least it needs to win), and Meta Engineering's posts
+  on Andromeda and multi-stage ads ranking, for the vocabulary of auction score, estimated
+  action rate and quality term. AdServe's auction is a small model of that description, not an
+  implementation of any company's system.
 - HdrHistogram (Gil Tene) for latency recording, and the coordinated-omission argument behind
   the open-loop load generator.
 
@@ -81,15 +93,17 @@ One call per ad break. Every stage is timed and exported as `adserve_stage_secon
    the configured cap mode decides: `UNKNOWN_ALLOW` serves as if counts were zero,
    `UNKNOWN_DENY` drops every capped campaign.
 5. **Pacing gate.** Each campaign's pacer admits the request with its current pass-through rate.
-6. **Selection and pod assembly.** Every creative of every surviving campaign becomes an item
-   (duration, value). The DP solver fills the break (see Pod assembly). The pod is validated
-   before it leaves the process; an invalid pod is replaced by an empty one and counted.
+6. **Auction and pod assembly.** Every creative of every surviving campaign bids (see The
+   auction) and becomes an item (duration, auction score). The DP solver fills the break with
+   the highest total score (see Pod assembly). The pod is validated before it leaves the
+   process; an invalid pod is replaced by an empty one and counted. Then every slot is priced.
 7. **Tokens.** Each impression gets a signed token: `base64url(Token || HMAC-SHA256)`. The token
-   carries impression, campaign, creative, serving region, viewer and price, so a beacon can be
+   carries impression, campaign, creative, serving region, viewer and cleared price, so a beacon can be
    verified and counted without a lookup, and a beacon that arrives in the wrong region knows
    where it was served.
 8. **Log.** The whole decision (request, scored candidates and why each was dropped, the pod,
-   tokens, prices) is offered to a bounded in-memory queue and published to `ad.responses` by one
+   tokens, and for every slot its cleared price, the winner's bid, its score and the campaign
+   whose score set the price) is offered to a bounded in-memory queue and published to `ad.responses` by one
    background thread with acks=1. The response never waits for it. When Kafka is down the queue
    fills and records are dropped and counted. The pod's counters are written with one
    fire-and-forget script call.
@@ -97,6 +111,70 @@ One call per ad break. Every stage is timed and exported as `adserve_stage_secon
 Nothing on this path awaits a database. The `--adserve.legacy-sync-write=true` mode inserts
 each decision into Postgres before responding; it exists only as the baseline for experiments 1
 and 6.
+
+## The auction
+
+The pod solver always ranked candidates by expected value per impression. The auction makes that
+explicit, gives it a price, and charges the price instead of the bid.
+
+**Bids.** A campaign bids per click (`cpc_bid`, in micros), which is the action it pays for; the
+decision path turns that into a bid for one impression of one creative, its **bid value**:
+`cpc_bid * click_rate * duration_factor`. A bid per impression would not work here: ranking by
+bid times predicted click rate only makes sense when the bid is for the click. Each campaign's
+bid comes from the replay's real winning prices: `cpc_bid` is the median price that campaign
+paid per impression on the replay day divided by its click rate, so a 30-second spot at the
+campaign's own click rate bids exactly its median real price (`sim derive-bids`, table in
+`results/m0_bids.md`). iPinYou's paying price is itself the clearing price of a second-price
+exchange, so these are the prices the advertisers were willing to pay, not their bids; the log's
+own bid column is reported next to them. A campaign with fewer than 30 observed prices would get
+a bid drawn from a log-normal fitted to all observed prices; none of the 55 needed it.
+
+**Score.** A candidate's auction score is its bid value, times `1 - w * skip_rate` when the
+optional quality term is on (`adserve.auction.quality-weight`, default 0). The skip rate is one
+minus completes over impressions, counted idempotently per creative by the beacon consumer and
+read by the server every ten seconds once a creative has 200 confirmed impressions. The term is
+off in every figure AdServe reports. A bid value below the reserve does not enter.
+
+**Pricing: generalized second price, per slot.** The DP fills the break with the highest total
+score subject to every pod rule, then each slot is priced on its own. The winner pays the least
+bid that would still have beaten the best excluded candidate that could have taken the slot:
+`price = rival_score / winner_score * winner_bid_value` (with the quality term off, simply the
+rival's score), floored at the reserve and capped at the winner's own bid value. A rival "could
+have taken the slot" when swapping it in for the winner leaves a legal pod: it is not in the pod,
+its advertiser is neither the winner's nor any other slot's, the pod still fits the break, and
+the categories can still be ordered under the separation rule. A slot with no such rival clears
+at the reserve. Under first price (the baseline, and what AdServe charged before the auction) the
+winner pays its bid value. `Impression.price_micros` is now the cleared price; the impression
+also carries `bid_micros`, `score_micros` and `priced_against`, and the decision record carries
+the rule, the reserve and the pod's cleared total.
+
+**The known approximation.** A pod is not a list of positions with fixed click-through factors,
+so the textbook position auction does not apply exactly. Pricing each slot against one swap is
+an approximation. The exact "least bid that still wins" for a winner in a constrained knapsack
+is its critical value: the bid at which the best pod without it becomes as good as the best pod
+with it. That needs one more solve per winner, and it can differ from the swap price both ways,
+because removing a winner can admit a pair of shorter spots, or a rival that only fits once two
+slots change. Because the DP repairs category separation heuristically, a swap rival can very
+rarely outscore the winner; the cap at the winner's bid covers it, and property tests check that
+under the exact optimum no pricing rival ever outscores its slot.
+
+**Reserve.** One reserve per slot, in micros per impression, derived from the log's own slot
+floor prices (see `results/m0_bids.md`). Without one, a lone bidder in a break would pay nothing.
+
+**Pacing.** A campaign the pacer throttles does not bid in that decision. A winner is charged its
+cleared price against its budget and in its pacer's spend, never its bid. The budget check before
+the auction still compares the bid value with the remaining budget, which is conservative (the
+price is never above it). Pacers can also shade instead of skip: `Pacer.bidMultiplier()` scales a
+campaign's bid value before the auction (experiment 15).
+
+**Calibration, measured.** The click rate enters the auction twice: in the score that picks the
+pod, and in the price, because a slot clears at the rival's score, which is the rival's bid times
+its predicted rate. Experiment 16 separates the two by treating each creative's log click rate as
+the truth and giving the auction a distorted copy (uniform scale, one advertiser scaled, or
+per-creative log-normal noise), then scoring every served impression on the truth: expected true
+clicks, cost per true click, and true value delivered against the true-rate run. It also reprices
+each impression as if billed per click at the cleared cost per click (price / predicted rate x
+true rate), the counterfactual under which a uniform bias cancels.
 
 ## Frequency capping
 
@@ -125,8 +203,8 @@ one impression per node. Experiment 2 measured the overshoot without it (BUG_LOG
 
 ## Pacing
 
-Three pacers behind one interface, a pass-through probability per campaign updated once per
-one-minute slot, plus two baselines:
+Four pacers behind one interface, three of them a pass-through probability per campaign and one a
+bid multiplier, each updated once per one-minute slot, plus two baselines:
 
 - **Throttle** (Agarwal et al., KDD 2014): multiply the rate by 1.1 or 0.9 depending on whether
   the last slot spent under or over its allocation (the remaining budget spread over the
@@ -139,6 +217,17 @@ one-minute slot, plus two baselines:
   per-creative click rates from the logs.
 - **PID**, ported from AdRankBench (kp 0.5, ki 0.05, kd 0.1) on the gap between planned and
   actual cumulative spend.
+- **Bid scaling** (`BidShadingPacer`, experiment 15), after the adaptive pacing of Balseiro and
+  Gur (Management Science 2019) and the pacing multipliers of Conitzer et al. (Operations
+  Research 2022): the campaign enters every auction it is eligible for and its bid value is
+  multiplied by lambda in [0.01, 1]. At every slot boundary lambda is multiplied by
+  `exp(-gain * ln(spend / allocation))`, the log step clamped to ln 4 and gain 0.5, against the
+  same allocation Smart Pacing uses, from the same forecast warm start. The gain was chosen on
+  the forecast day (2013-06-10) from 0.25, 0.5 and 1.0 by RMSE against plan, and reported on the
+  replay day. Where a slot clears at the reserve or at a rival far below the winner's bid, a
+  lower bid changes neither what the campaign wins nor what it pays until the bid falls under
+  that price, so spend responds to lambda as a step, not a slope; experiment 15 measures what
+  that does on this replay's five advertisers.
 - **Unpaced** baseline, and a **perfect-forecast** baseline (`oracle` in the results) that runs
   the Smart controller with the replay day's own eligible traffic instead of the previous day's.
   It was meant to bound what forecast error costs. It did not beat the real forecast: it ran
@@ -222,7 +311,7 @@ Derived, deterministic, and assumed:
 |---|---|---|
 | Campaign | one per (advertiser, creative) | the log has no campaign structure |
 | Daily budget | the creative's actual spend that day (sum of paying price) | pacing runs against a real spend curve |
-| CPC bid | advertiser's average price per impression over its average click rate | so a 30 s spot at average click rate is worth what the advertiser paid |
+| CPC bid | the campaign's median paying price per impression on the replay day over its click rate (`sim derive-bids`; before the auction: the advertiser's average price over the advertiser's click rate) | so a 30 s spot at the campaign's own click rate bids its median real winning price |
 | Click rate | clicks over impressions, both days, smoothed toward the advertiser rate (2,000-impression prior) | from the logs, not a model |
 | Category | the advertiser's industry from Zhang et al. 2014 (e-commerce, software, oil, tire) mapped to retail, software, auto | real, and two pairs collide, so separation binds |
 | Targeting | fewest regions covering 90% of the creative's impressions (any if more than 20); device classes with 5% share; the advertiser's lifted user tags if they cover 60% | derived from real delivery |
@@ -232,7 +321,8 @@ Derived, deterministic, and assumed:
 | Genre | hash of the domain into ten genres | the log has no titles |
 | Serving region | hash of the region code into US_EAST or US_WEST | two data centres for routing |
 | Frequency cap | hash of creative: 2, 3 or 4 a day (week 3x), a quarter uncapped | the log has no caps |
-| Currency | paying price is CPM in fen; one impression in micros is price x 10 | units |
+| Reserve | 50 micros per impression per slot: the median slot floor price (`slotprice`) of the replay day | the log's own floors; 32% of slots had none |
+| Currency | paying price is CPM in fen; one impression in micros is price x 10 (micro-yuan, never dollars) | units |
 
 No one watched anything. Viewers are simulated in the sense that the arrival, frequency and
 click structure is real and nothing else is.
