@@ -15,6 +15,14 @@ public interface Pacer {
         return u < rate();
     }
 
+    /**
+     * Factor on the campaign's bid in this slot's auctions, in (0, 1]. Throttling pacers keep it
+     * at 1 and gate by {@link #admit}; a bid-shading pacer admits everything and lowers it.
+     */
+    default double bidMultiplier() {
+        return 1.0;
+    }
+
     /** Current pass-through rate in [0, 1]. */
     double rate();
 

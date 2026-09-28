@@ -122,6 +122,11 @@ public final class PacingController {
         return s.pacer.admit(u);
     }
 
+    /** The factor on this campaign's bid in the current slot (1 unless its pacer shades bids). */
+    public double bidMultiplier(Campaign c, long day) {
+        return state(c, day).pacer.bidMultiplier();
+    }
+
     public void recordSpend(Campaign c, long day, long micros) {
         state(c, day).slotSpend.add(micros);
     }

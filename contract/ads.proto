@@ -81,8 +81,11 @@ message Impression {
   string token = 2;             // base64(Token bytes || HMAC-SHA256)
   Creative creative = 3;
   uint32 slot = 4;              // position in the pod, 0-based
-  int64 price_micros = 5;       // what this impression is worth, in micro-dollars
+  int64 price_micros = 5;       // what this impression is charged: the cleared price of its slot, in micros
   repeated EventType tracking = 6; // which events the device must fire
+  int64 bid_micros = 7;         // added auction M1: the winner's own bid value (what first price charges)
+  int64 score_micros = 8;       // added auction M1: the auction score the pod solver ranked by
+  string priced_against = 9;    // added auction M1: campaign whose score set the price; empty if the reserve did
 }
 
 // The decision. Returned to the player. Published, fire-and-forget, to Kafka topic ad.responses
@@ -118,7 +121,10 @@ message DecisionRecord {
   repeated ScoredCandidate candidates = 3;
   string cap_mode = 4;          // "ok", "unknown_allow" or "unknown_deny" (counter store unreachable)
   string solver = 5;            // pod assembly algorithm used
-  int64 pod_value_micros = 6;
+  int64 pod_value_micros = 6;   // total auction score of the pod
+  string pricing = 7;           // added auction M1: "second_price" or "first_price"
+  int64 pod_cleared_micros = 8; // added auction M1: total charged for the pod
+  int64 reserve_micros = 9;     // added auction M1: the per-slot reserve this decision used
 }
 
 // What the device fires. Published to Kafka topic ad.beacons.<region> keyed by the token

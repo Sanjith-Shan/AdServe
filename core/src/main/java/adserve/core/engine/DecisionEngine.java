@@ -8,6 +8,9 @@ import ads.v1.EventType;
 import ads.v1.Impression;
 import ads.v1.ScoredCandidate;
 import ads.v1.Token;
+import adserve.core.auction.Auction;
+import adserve.core.auction.AuctionConfig;
+import adserve.core.auction.QualitySignal;
 import adserve.core.caps.CapCounts;
 import adserve.core.caps.CapMode;
 import adserve.core.caps.CapStore;
@@ -56,6 +59,8 @@ public final class DecisionEngine {
     private final DoubleSupplier random;
     private final StageTimer timer;
 
+    private volatile QualitySignal quality = QualitySignal.NONE;
+
     private final LongAdder invalidPods = new LongAdder();
     private final LongAdder capUnknown = new LongAdder();
 
@@ -87,6 +92,11 @@ public final class DecisionEngine {
 
     public long capUnknown() {
         return capUnknown.sum();
+    }
+
+    /** Where the optional quality term reads skip rates; only consulted when its weight is above 0. */
+    public void setQualitySignal(QualitySignal q) {
+        this.quality = q == null ? QualitySignal.NONE : q;
     }
 
     public PacingController pacing() {
@@ -198,20 +208,37 @@ public final class DecisionEngine {
         m = k;
         t = lap(Stage.PACING, t);
 
-        // 6. Selection and pod assembly over every creative of every surviving campaign.
+        // 6. The auction and pod assembly. Every creative of every surviving campaign bids its
+        // value (cpc bid x click rate x duration factor, times the pacer's bid multiplier); a bid
+        // below the reserve does not enter. The solver maximises total auction score, then every
+        // slot is priced (second price by default, see Auction).
+        final AuctionConfig auction = config.auction();
+        final double qualityWeight = auction.qualityWeight();
         List<Item> items = new ArrayList<>();
         List<int[]> refs = new ArrayList<>();
+        long[] bids = new long[16];
         for (int j = 0; j < m; j++) {
             int i = live[j];
             Campaign c = snap.campaign(i);
             long remainingBudget = c.dailyBudgetMicros() - budget.spent(c.id(), day);
+            double mult = pacing.bidMultiplier(c, day);
+            boolean entered = false;
             for (int x = 0; x < c.creatives().size(); x++) {
                 long v = snap.creativeValue(i, x);
-                if (v <= 0 || v > remainingBudget) continue;
-                items.add(new Item(refs.size(), i, snap.advertiser(i), snap.category(i),
-                        c.creatives().get(x).durationS(), v));
+                if (mult != 1.0) v = Math.round(v * mult);
+                if (v <= 0 || v > remainingBudget || v < auction.reserveMicros()) continue;
+                long score = qualityWeight > 0
+                        ? Auction.score(v, quality.skipRate(c.creatives().get(x).id()), qualityWeight) : v;
+                if (score <= 0) continue;
+                int ref = refs.size();
+                if (ref == bids.length) bids = java.util.Arrays.copyOf(bids, ref * 2);
+                bids[ref] = v;
+                items.add(new Item(ref, i, snap.advertiser(i), snap.category(i),
+                        c.creatives().get(x).durationS(), score));
                 refs.add(new int[]{i, x});
+                entered = true;
             }
+            if (!entered && auction.reserveMicros() > 0) dropped[i] = "reserve";
         }
         PodRules rules = new PodRules(req.getBreakLengthS(), config.minAds(),
                 Math.min(config.maxAds(), hourRemaining), config.separation());
@@ -220,6 +247,8 @@ public final class DecisionEngine {
             invalidPods.increment();
             pod = Pod.EMPTY;
         }
+        Auction.Clearing[] cleared = pod.size() == 0 ? new Auction.Clearing[0]
+                : Auction.price(pod, items, bids, rules, auction);
         t = lap(Stage.SELECTION, t);
 
         // 7. Tokens and response.
@@ -232,8 +261,14 @@ public final class DecisionEngine {
         String pacerName = "";
         String[] servedCampaigns = new String[pod.size()];
         String[] servedEvents = new String[pod.size()];
+        long podCleared = 0;
         for (int slot = 0; slot < pod.size(); slot++) {
             Item it = pod.items().get(slot);
+            Auction.Clearing clearing = cleared[slot];
+            long price = clearing.priceMicros();
+            podCleared += price;
+            String pricedAgainst = clearing.rivalRef() < 0 ? ""
+                    : snap.campaign(refs.get(clearing.rivalRef())[0]).id();
             int[] ref = refs.get(it.ref());
             Campaign c = snap.campaign(ref[0]);
             CreativeSpec cs = c.creatives().get(ref[1]);
@@ -245,7 +280,7 @@ public final class DecisionEngine {
                     .setServingRegion(config.servingRegion())
                     .setIssuedTsMs(now)
                     .setViewerId(req.getViewerId())
-                    .setPriceMicros(it.value())
+                    .setPriceMicros(price)
                     .build();
             resp.addPod(Impression.newBuilder()
                     .setImpressionId(impressionId)
@@ -257,13 +292,16 @@ public final class DecisionEngine {
                             .setCategory(c.category())
                             .setDurationS(cs.durationS()))
                     .setSlot(slot)
-                    .setPriceMicros(it.value())
+                    .setPriceMicros(price)
+                    .setBidMicros(clearing.bidMicros())
+                    .setScoreMicros(clearing.scoreMicros())
+                    .setPricedAgainst(pricedAgainst)
                     .addAllTracking(TRACKING));
             servedCampaigns[slot] = c.id();
             servedEvents[slot] = EventIds.impression(impressionId);
             if (pacerName.isEmpty()) pacerName = pacing.pacer(c, day).kind().wire();
-            budget.charge(c.id(), day, it.value());
-            pacing.recordSpend(c, day, it.value());
+            budget.charge(c.id(), day, price);
+            pacing.recordSpend(c, day, price);
         }
         resp.setPacer(pacerName);
         t = lap(Stage.TOKENS, t);
@@ -278,7 +316,10 @@ public final class DecisionEngine {
                 .setRequest(req)
                 .setCapMode(capState)
                 .setSolver(solver.name())
-                .setPodValueMicros(pod.value());
+                .setPodValueMicros(pod.value())
+                .setPricing(auction.pricing().wire())
+                .setPodClearedMicros(podCleared)
+                .setReserveMicros(auction.reserveMicros());
         if (config.logCandidates()) {
             boolean[] reached = new boolean[n];
             for (int j = 0; j < m; j++) reached[live[j]] = true;
