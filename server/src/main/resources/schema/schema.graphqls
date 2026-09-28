@@ -72,7 +72,7 @@ type Delivery {
     pacingRate: Float
 }
 
-enum Pacer { UNPACED THROTTLE SMART PID }
+enum Pacer { UNPACED THROTTLE SMART PID BID_SCALE }
 enum Device { TV MOBILE WEB }
 
 input CampaignInput {

@@ -53,7 +53,17 @@ if (\$code -ne 0) { Write-Output "sim exited \$code"; exit \$code }
 EOF
 minipc push "$TMP/job.ps1" "C:/SullaPortal/projects/adserve/job-$JOB.ps1" >/dev/null
 minipc job add "sim-$JOB" manual "powershell -NoProfile -ExecutionPolicy Bypass -File $ROOT\\job-$JOB.ps1" >/dev/null
-minipc job run "sim-$JOB"
+# `minipc job run` stops following after 30 min, and a run may queue behind the box's lock for
+# longer, so start it and follow its log until this run's exit line.
+minipc job run "sim-$JOB" --no-wait >/dev/null
+STARTED=$(date +%s)
+until LOG=$(minipc job logs "sim-$JOB" 2>/dev/null) && echo "$LOG" | tail -1 | grep -q '^=== exit' \
+    && [ $(( $(date +%s) - STARTED )) -gt 60 ] \
+    && [ "$(echo "$LOG" | head -1 | grep -o '[0-9]\{8\}-[0-9]\{6\}')" \> "$(date -r $((STARTED - 120)) +%Y%m%d-%H%M%S)" ]; do
+  sleep 30
+done
+echo "$LOG" | grep -v '^waiting for cpu.lock'
+echo "$LOG" | tail -1 | grep -q '^=== exit 0' || { echo "job sim-$JOB failed"; exit 1; }
 
 IFS=, read -ra LIST <<< "$FILES"
 for f in "${LIST[@]}"; do

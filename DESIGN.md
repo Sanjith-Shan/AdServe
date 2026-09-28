@@ -194,8 +194,8 @@ one impression per node. Experiment 2 measured the overshoot without it (BUG_LOG
 
 ## Pacing
 
-Three pacers behind one interface, a pass-through probability per campaign updated once per
-one-minute slot, plus two baselines:
+Four pacers behind one interface, three of them a pass-through probability per campaign and one a
+bid multiplier, each updated once per one-minute slot, plus two baselines:
 
 - **Throttle** (Agarwal et al., KDD 2014): multiply the rate by 1.1 or 0.9 depending on whether
   the last slot spent under or over its allocation (the remaining budget spread over the
@@ -208,6 +208,17 @@ one-minute slot, plus two baselines:
   per-creative click rates from the logs.
 - **PID**, ported from AdRankBench (kp 0.5, ki 0.05, kd 0.1) on the gap between planned and
   actual cumulative spend.
+- **Bid scaling** (`BidShadingPacer`, experiment 15), after the adaptive pacing of Balseiro and
+  Gur (Management Science 2019) and the pacing multipliers of Conitzer et al. (Operations
+  Research 2022): the campaign enters every auction it is eligible for and its bid value is
+  multiplied by lambda in [0.01, 1]. At every slot boundary lambda is multiplied by
+  `exp(-gain * ln(spend / allocation))`, the log step clamped to ln 4 and gain 0.5, against the
+  same allocation Smart Pacing uses, from the same forecast warm start. The gain was chosen on
+  the forecast day (2013-06-10) from 0.25, 0.5 and 1.0 by RMSE against plan, and reported on the
+  replay day. Where a slot clears at the reserve or at a rival far below the winner's bid, a
+  lower bid changes neither what the campaign wins nor what it pays until the bid falls under
+  that price, so spend responds to lambda as a step, not a slope; experiment 15 measures what
+  that does on this replay's five advertisers.
 - **Unpaced** baseline, and a **perfect-forecast** baseline (`oracle` in the results) that runs
   the Smart controller with the replay day's own eligible traffic instead of the previous day's.
   It was meant to bound what forecast error costs. It did not beat the real forecast: it ran

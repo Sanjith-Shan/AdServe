@@ -1,4 +1,4 @@
-"""README charts from results/*.jsonl. Run: python3 scripts/charts.py"""
+"""README charts from results/*.jsonl. Run: python3 scripts/charts.py [burst|pacing|shading ...] (default: all)"""
 import json, statistics, os
 import matplotlib
 matplotlib.use("Agg")
@@ -70,5 +70,44 @@ def pacing():
     fig.tight_layout(rect=(0, 0.04, 1, 1))
     fig.savefig("docs/img/pacing.svg")
 
-burst(); pacing()
+def shading():
+    allrows = rows("exp12_shading.jsonl")
+    runs = [o for o in allrows if o.get("row") == "summary"]
+    if not runs: return
+    last = runs[-1]  # the latest run; earlier runs stay in the file
+    r = [o for o in allrows if o.get("row") == "shade" and o.get("advertiser") == last["headline_advertiser"]
+         and o["traffic"] == last["traffic"] and o["at"] <= last["at"]]
+    seen, dedup = set(), []
+    for o in reversed(r):  # keep each (rule, shade) from the latest run only
+        k = (o["pricing"], o["shade_pct"])
+        if k not in seen: seen.add(k); dedup.append(o)
+    r = dedup
+    adv = last["headline_advertiser"]
+    fig, (a1, a2, a3) = plt.subplots(1, 3, figsize=(10.5, 3.8))
+    won = sorted((o["shade_pct"], o["impressions_vs_truthful"]) for o in r if o["pricing"] == "second_price")
+    a1.plot([s for s, _ in won], [100 * v for _, v in won], color=INK, linewidth=2)
+    a1.scatter([s for s, _ in won], [100 * v for _, v in won], s=18, color=INK, edgecolors=SURFACE, linewidths=1.2, zorder=3)
+    for rule, color, name in (("second_price", BLUE, "second price"), ("first_price", ORANGE, "first price")):
+        pts = sorted((o["shade_pct"], o) for o in r if o["pricing"] == rule)
+        x = [s for s, _ in pts]
+        for ax, key in ((a2, "cost_yuan"), (a3, "surplus_yuan")):
+            ax.plot(x, [o[key] for _, o in pts], color=color, linewidth=2, label=name)
+            ax.scatter(x, [o[key] for _, o in pts], s=18, color=color, edgecolors=SURFACE, linewidths=1.2, zorder=3)
+    a1.set_ylabel("impressions won (% of truthful)")
+    a2.set_ylabel("cost (yuan)")
+    a3.set_ylabel("surplus: value minus cost (yuan)")
+    for ax in (a1, a2, a3):
+        ax.set_xlabel("bid shade (%)"); ax.set_xticks([0, 10, 25, 50]); ax.set_ylim(bottom=0)
+    style(a1, "Wins (same under both rules)")
+    style(a2, "What it pays")
+    style(a3, "What it keeps")
+    a2.legend(frameon=False, loc="upper right", fontsize=9, labelcolor=INK)
+    fig.text(0.01, 0.01, f"Advertiser {adv} (the most impressions) shades every bid; the other four bid as before. Value = its unshaded bid.\n"
+             f"{last['traffic']}. Caps on, budgets unlimited, unpaced.", color=MUTED, fontsize=7)
+    fig.tight_layout(rect=(0, 0.08, 1, 1))
+    fig.savefig("docs/img/shading.svg")
+
+import sys
+for name in (sys.argv[1:] or ["burst", "pacing", "shading"]):
+    globals()[name]()
 print("charts written")
