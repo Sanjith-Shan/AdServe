@@ -237,6 +237,39 @@ can show", not as capacity.
   laptop, and the missed-deadline counts are high in every leg (BUG_LOG bug 11): the load, not
   the code, sets them.
 
+## Experiment 14: pacing when winners pay the cleared price
+
+`results/exp14_pacing_pricing.jsonl` (per campaign in `exp14_pacing_pricing_campaigns.jsonl`).
+Experiment 2's setup (8 nodes, 10 s sync, every pacer, with and without the per-node allowance,
+the replay day 2013-06-11) on the bids derived from the replay, once under first price (charged
+the bid, as in experiment 2) and once under second price (charged the cleared price), reserve 50
+micros. Budgets are unchanged: each campaign's real spend that day. Run on the Windows mini PC.
+
+| Pacer, allowance on | First price: within 5% / overspent / out before 23:00 / RMSE | Second price: within 5% / overspent / out before 23:00 / RMSE | Second price: budget delivered |
+|---|---|---|---|
+| **Smart Pacing** | **55 / 0 / 1 / 0.082** | **20 / 0 / 0 / 0.215** | 72.5% |
+| Throttling | 55 / 0 / 33 / 0.185 | 28 / 0 / 10 / 0.299 | 74.5% |
+| PID | 27 / 0 / 8 / 0.169 | 10 / 0 / 3 / 0.262 | 65.7% |
+| Perfect forecast | 55 / 0 / 46 / 0.151 | 31 / 0 / 12 / 0.278 | 77.0% |
+| Unpaced | 55 / 0 / 49 / 0.432 | 34 / 0 / 27 / 0.405 | 83.2% |
+
+- **Under first price, experiment 2's result holds on the new bids and slightly improves: Smart
+  Pacing put all 55 campaigns within 5% of budget, overspent none, and RMSE fell to 0.082.**
+- **Under second price the safety half holds (0 overspent with the allowance, 0 out of budget
+  early under Smart Pacing), but budgets stop being spendable.** Winners paid 25.5 to 29.3% of
+  their bids on average, so the same budgets bought 2.4 times the impressions under Smart Pacing
+  (5.66 million against 2.35 million) and 2.6 times unpaced, and many campaigns ran out of traffic before they ran out of
+  money.
+- The mechanism is the one-ad-per-advertiser rule. Unpaced under second price, **11 campaigns
+  spent under 5% of their budgets** while sibling creatives of the same advertiser spent in full:
+  the advertiser's strongest creative held its one slot per pod all day. Under first price the
+  same leaders spent out within the first hours and the siblings took over (0 starved).
+- Smart Pacing's own shortfall: of the 35 campaigns it left more than 5% short, 21 were short
+  even unpaced; the other 14 were spendable (unpaced spent them) and Smart landed 10 to 51%
+  short, most likely because throttling a leader changes its siblings' traffic in ways the
+  per-campaign forecast does not model.
+- Without the allowance, second-price unpaced delivery overspent 34 campaigns, the worst by 552%; Smart Pacing 11 (worst 15%). The allowance still does the work it did in experiment 2.
+
 ## Experiment 15: pacing by bid multiplier instead of throttling
 
 `results/exp15_bid_pacing.jsonl` (per campaign in `exp15_bid_pacing_campaigns.jsonl`), tuning
@@ -262,7 +295,7 @@ chosen on 2013-06-10 from 0.25, 0.5 and 1.0 by RMSE against plan. Run on the Win
   controller on a step oscillates. Bid multipliers are the standard answer in thick auctions,
   where the price moves with the bid; this replay is thin.
 - Smart Pacing kept every campaign in budget all day but delivered only 72.5% of budgets, its
-  median campaign landing 25% short; experiment 14 separates that from the pricing rule.
+  median campaign landing 25% short; experiment 14 explains why.
 
 ## Experiment 16: miscalibrated click-rate predictions in the auction
 
