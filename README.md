@@ -58,7 +58,7 @@ is a range over repeats and comes with its file in `NUMBERS.md`.
 | The auction over one replay day: bid x predicted click rate, second price per pod slot, 5.5 million impressions | cleared 2,759.89 yuan, 36.3% of bids; per-slot pricing collected 85.1% of what exact critical-value pricing would | first price at the same bids: 7,598.96 yuan |
 | Budget pacing when winners pay the cleared price | 0 campaigns overspent and 0 out of budget early, but 72.5% of budgets delivered: cheaper impressions outrun the eligible traffic | first price, same bids: 55 of 55 within 5% of budget |
 | Shading a bid 0 to 50% against unchanged rivals, one replay day | second price: bidding full value was best for all 5 advertisers; a 25% shade cost the largest 17.5% of its impressions and 93 yuan of surplus | first price: shading paid for all 5, the largest gaining 802 yuan at a 40% shade |
-| Click-rate predictions 2x too high, per-impression billing | same winners, advertisers pay 98.1% more per real click; billed per click instead, -0.9% | true rates |
+| Click-rate predictions 2x too high, per-impression billing | unlimited budgets: same winners, advertisers pay 98.1% more per real click (billed per click instead, -0.9%); real budgets, paced: 22.1% fewer real clicks at 60.0% more per click | true rates |
 | Random error in click-rate predictions (sigma 0.1, 0.25, 0.5; 10 seeds) | allocative efficiency 99.4%, 94.9%, 79.2% | true rates: 100% |
 | Pricing one assembled pod (JMH) | about 1.1 us, against a DP pod solve of 7 to 10 us | |
 | Campaign change reaching a serving node over Hollow, 5,000 campaigns | about 1.1 KB delta against a 1.18 MB snapshot, about 1 s (the watcher polls each second) | |

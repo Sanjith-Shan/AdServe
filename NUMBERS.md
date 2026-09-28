@@ -331,8 +331,8 @@ chosen on 2013-06-10 from 0.25, 0.5 and 1.0 by RMSE against plan. Run on the Win
 
 `results/exp16_calibration.jsonl`. The log's smoothed click rates are treated as the truth; the
 auction ranks and prices with a distorted prediction and outcomes are scored on the truth. Whole
-replay day 2013-06-11, unlimited budgets, unpaced, second price, caps on, reserve 50 micros.
-Intervals: paired bootstrap over viewers (4,096 hash clusters, 2,000 resamples) for single
+replay day 2013-06-11, second price, caps on, reserve 50 micros; the first leg has unlimited
+budgets and no pacing, so only allocation and price move. Intervals: paired bootstrap over viewers (4,096 hash clusters, 2,000 resamples) for single
 conditions, and a t interval over 10 seeds for the noise conditions. Allocative efficiency is the
 true value delivered (bid x true rate x duration factor) over what true rates would have
 delivered. Run on the Windows mini PC.
@@ -359,6 +359,25 @@ delivered. Run on the Windows mini PC.
   maximises value (bid x rate), not clicks.
 - **Noise costs efficiency roughly with its size:** 0.6% at sigma 0.1, 5.1% at 0.25, 20.8% at 0.5
   (worst seed 44%).
+
+**With budgets binding** (second leg: each campaign's real budget, Smart Pacing from the forecast
+day, same conditions except that the per-advertiser under-prediction and noise conditions were not
+run here), a miscalibration that raises prices also spends budgets sooner, so it costs clicks:
+
+| Prediction, paced | Change in true clicks | Change in cost per true click | True value delivered vs true rates |
+|---|---|---|---|
+| Every rate x 2.0 | **-22.11%** | **+59.95%** | 0.795 |
+| Every rate x 1.25 | -7.26% | +18.18% | 0.936 |
+| Every rate x 0.8 | +6.83% | -15.77% | 1.057 |
+| Every rate x 0.5 | +17.87% | -40.33% | 1.156 |
+| One advertiser x 2.0 (each of the five) | -1.51% to -6.64% | -2.08% to +14.26% | 0.974 to 0.987 |
+
+- **With real budgets, a 2x over-prediction cost advertisers 22.11% of their true clicks and
+  raised their cost per true click 59.95%.** Under-prediction does the reverse (cheaper
+  impressions stretch the same budgets), which is why the last column can exceed 1 here: it is
+  the value delivered relative to the true-rate run, not an efficiency bounded by it.
+- The reserve priced 71% of slots in this leg against 19% unpaced: with every campaign throttled,
+  most slots have no rival left (the same thinning experiment 14 describes).
 
 ## JMH: the decision path's CPU cost
 

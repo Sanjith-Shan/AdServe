@@ -126,12 +126,12 @@ public final class PacingExperiment {
             planWeights[i] = new long[SLOTS];
             for (int sl = 0; sl < SLOTS; sl++) planWeights[i][sl] = Math.round(w[sl] * 1000);
         }
-        Meta meta = new Meta(o, campaignsFile, dayFile, creativeFacts(base));
+        RunInfo info = new RunInfo(o, campaignsFile, dayFile, creativeFacts(base));
         // The campaigns' flights are the replay day (2013-06-11). Tuning on another day (the
         // forecast day, 2013-06-10) moves every flight to that day; nothing else changes.
         long shiftMs = flightShiftMs(base, dayFile);
         List<Campaign> flown = shiftFlights(base, shiftMs);
-        meta = meta.withShift(shiftMs);
+        info = info.withShift(shiftMs);
 
         ObjectNode curves = Results.json().createObjectNode();
         ArrayNode hours = curves.putArray("hour");
@@ -155,9 +155,9 @@ public final class PacingExperiment {
                             : (c, p) -> Pacers.create(c.pacer(), p, Pacers.warmStart(c, p, PacingController.maxValue(c)));
                     long s0 = System.nanoTime();
                     Run r = run(withPacer(flown, kind, false), dayFile, nodes, syncMs, split, index, factory, forecast,
-                            cfg, meta.creatives());
+                            cfg, info.creatives());
                     double secs = (System.nanoTime() - s0) / 1e9;
-                    report(kind, split, rule, base, planWeights, r, nodes, syncMs, secs, curves, meta, gain);
+                    report(kind, split, rule, base, planWeights, r, nodes, syncMs, secs, curves, info, gain);
                   }
                 }
             }
@@ -230,13 +230,13 @@ public final class PacingExperiment {
         return new CreativeFacts(ctr, bid);
     }
 
-    record Meta(Options options, Path campaignsFile, Path dayFile, CreativeFacts creatives, long flightShiftMs) {
-        Meta(Options options, Path campaignsFile, Path dayFile, CreativeFacts creatives) {
+    record RunInfo(Options options, Path campaignsFile, Path dayFile, CreativeFacts creatives, long flightShiftMs) {
+        RunInfo(Options options, Path campaignsFile, Path dayFile, CreativeFacts creatives) {
             this(options, campaignsFile, dayFile, creatives, 0);
         }
 
-        Meta withShift(long ms) {
-            return new Meta(options, campaignsFile, dayFile, creatives, ms);
+        RunInfo withShift(long ms) {
+            return new RunInfo(options, campaignsFile, dayFile, creatives, ms);
         }
 
         String replayDay() {
@@ -402,9 +402,9 @@ public final class PacingExperiment {
     }
 
     static void report(PacerKind kind, boolean split, PricingRule rule, List<Campaign> cs, long[][] planWeights, Run r,
-                       int nodes, long syncMs, double secs, ObjectNode curves, Meta meta, double gain) throws Exception {
-        String out = meta.options().out();
-        boolean exp2 = meta.options().mode().equals("exp2");
+                       int nodes, long syncMs, double secs, ObjectNode curves, RunInfo info, double gain) throws Exception {
+        String out = info.options().out();
+        boolean exp2 = info.options().mode().equals("exp2");
         int n = cs.size();
         double sumDelivered = 0, sumAbsLanding = 0, maxAbsLanding = 0, sumOver = 0, maxOver = 0, sumRmse = 0, maxDev = 0;
         double budgetTotal = 0, spendTotal = 0, overspendMicros = 0, sumExhaust = 0;
@@ -470,29 +470,29 @@ public final class PacingExperiment {
             }
         }
         for (int s = 0; s < SLOTS; s++) agg[s] /= budgetTotal;
-        curves.set((exp2 ? "" : rule.wire() + "_") + kind.wire() + (Double.isNaN(gain) || meta.options().bidGains().length == 1 ? "" : "_g" + gain)
+        curves.set((exp2 ? "" : rule.wire() + "_") + kind.wire() + (Double.isNaN(gain) || info.options().bidGains().length == 1 ? "" : "_g" + gain)
                 + (split ? "" : "_no_split"), hourly(agg));
 
         ObjectNode row = Results.line(out);
         row.put("pacer", kind.wire());
         if (!exp2) {
             row.put("pricing", rule.wire());
-            row.put("reserve_micros", meta.options().reserveMicros());
-            row.put("reserve_source", meta.options().reserveSource());
-            row.put("campaigns_file", meta.campaignsFile().toString());
-            row.put("replay_day", meta.replayDay());
-            if (meta.flightShiftMs() != 0) row.put("flights_shifted_days", meta.flightShiftMs() / Windows.DAY_MS);
+            row.put("reserve_micros", info.options().reserveMicros());
+            row.put("reserve_source", info.options().reserveSource());
+            row.put("campaigns_file", info.campaignsFile().toString());
+            row.put("replay_day", info.replayDay());
+            if (info.flightShiftMs() != 0) row.put("flights_shifted_days", info.flightShiftMs() / Windows.DAY_MS);
             if (kind == PacerKind.BID_SCALE) {
                 ObjectNode bp = row.putObject("bid_scale_params");
                 bp.put("gain", gain);
-                bp.put("max_step_factor", Math.exp(meta.options().bidMaxLogStep()));
-                bp.put("floor", meta.options().bidFloor());
+                bp.put("max_step_factor", Math.exp(info.options().bidMaxLogStep()));
+                bp.put("floor", info.options().bidFloor());
                 bp.put("warm_start", "Pacers.warmStart (budget over forecast requests x best bid value)");
             }
         }
         row.put("allowance_split", split);
         row.put("traffic", String.format("iPinYou season 2, %s: %,d ad breaks; forecast from %s; simulated viewers",
-                meta.replayDay(), r.decisions, meta.previousDay()));
+                info.replayDay(), r.decisions, info.previousDay()));
         row.put("campaigns", n);
         row.put("serving_nodes", nodes);
         row.put("budget_sync_ms", syncMs);
